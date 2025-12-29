@@ -70,9 +70,11 @@ export const OrderTableRow = memo(function OrderTableRow({
           aria-selected={isSelected}
           aria-label={`주문 ${order.id}: ${order.customerName || '고객명 없음'}, 상태: ${formatOrderStatus(order)}`}
           className={cn(
-            "group cursor-pointer transition-all duration-300 hover:shadow-xl relative border-b border-gray-200/20 dark:border-gray-700/20",
+            "group cursor-pointer transition-colors duration-200 relative",
             // 선택된 행만 배경색 적용
-            isSelected && "bg-gray-300 dark:bg-gray-600 shadow-xl z-30",
+            isSelected && "bg-gray-200 dark:bg-[#2a2a30] z-30",
+            // 호버 효과
+            !isSelected && "hover:bg-gray-50 dark:hover:bg-[#18181c]",
             // 텍스트 색상은 상태에 따라 적용
             isCancelled && ORDER_COLORS.cancelled.text,
             isWaiting && !isReserved && ORDER_COLORS.waiting.text,
@@ -88,8 +90,8 @@ export const OrderTableRow = memo(function OrderTableRow({
           <td
             className={cn(
               styles.compactCell,
-              "text-sm relative text-center border-r border-gray-200/20 dark:border-gray-700/20",
-              isSelected && "before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-gray-700 dark:before:bg-gray-300 before:animate-pulse"
+              "text-sm relative text-center",
+              isSelected && "before:absolute before:left-0 before:top-0 before:bottom-0 before:w-0.5 before:bg-primary/60"
             )}
             style={{ width: `${columnWidths.date}px`, minWidth: `${columnWidths.date}px`, maxWidth: `${columnWidths.date}px`, paddingLeft: '4px', paddingRight: '4px' }}
           >
@@ -98,7 +100,7 @@ export const OrderTableRow = memo(function OrderTableRow({
             </TooltipCell>
           </td>
           <td
-            className={cn(styles.compactCell, "text-sm text-center border-r border-gray-200/20 dark:border-gray-700/20")}
+            className={cn(styles.compactCell, "text-sm text-center")}
             style={{ width: `${columnWidths.time}px`, minWidth: `${columnWidths.time}px`, maxWidth: `${columnWidths.time}px` }}
           >
             <TooltipCell content={order.addAt && !isNaN(new Date(order.addAt).getTime()) ? format(new Date(order.addAt), 'HH:mm:ss', { locale: ko }) : '-'}>
@@ -108,8 +110,7 @@ export const OrderTableRow = memo(function OrderTableRow({
           <td
             className={cn(
               styles.compactCell,
-              "text-sm text-center border-r border-gray-200/20 dark:border-gray-700/20",
-              !isSelected && "bg-primary/5"
+              "text-sm text-center"
             )}
             style={{ width: `${columnWidths.telephone}px`, minWidth: `${columnWidths.telephone}px`, maxWidth: `${columnWidths.telephone}px` }}
           >
@@ -120,7 +121,7 @@ export const OrderTableRow = memo(function OrderTableRow({
           <td
             className={cn(
               styles.compactCell,
-              "text-sm text-center border-r border-gray-200/20 dark:border-gray-700/20"
+              "text-sm text-center"
             )}
             style={{ width: `${columnWidths.customerName}px`, minWidth: `${columnWidths.customerName}px`, maxWidth: `${columnWidths.customerName}px` }}
           >
@@ -128,19 +129,19 @@ export const OrderTableRow = memo(function OrderTableRow({
               content={order.customerName || '-'}
               className={cn(
                 "font-medium",
-                order.token && "bg-blue-100 dark:bg-blue-900 px-1 rounded"
+                order.token && "bg-blue-100 dark:bg-blue-900/30 px-1 rounded"
               )}
             />
           </td>
           <td
-            className={cn(styles.compactCell, "text-sm border-r border-gray-200/20 dark:border-gray-700/20")}
+            className={cn(styles.compactCell, "text-sm")}
             style={{ width: `${columnWidths.calldong}px`, minWidth: `${columnWidths.calldong}px`, maxWidth: `${columnWidths.calldong}px` }}
           >
             <TooltipCell content={order.calldong || '-'}>
               {order.calldong || '-'}
             </TooltipCell>
           </td>
-          <td className={cn(styles.compactCell, "text-sm border-r border-gray-200/20 dark:border-gray-700/20")}>
+          <td className={cn(styles.compactCell, "text-sm")}>
             {/* callplace는 flex로 자동 확장 */}
             <div className="flex items-center gap-1">
               {order.selectAgent && (
@@ -159,7 +160,7 @@ export const OrderTableRow = memo(function OrderTableRow({
             </div>
           </td>
           <td
-            className={cn(styles.compactCell, "text-sm border-r border-gray-200/20 dark:border-gray-700/20")}
+            className={cn(styles.compactCell, "text-sm")}
             style={{ width: `${columnWidths.sms}px`, minWidth: `${columnWidths.sms}px`, maxWidth: `${columnWidths.sms}px` }}
           >
             <TooltipCell content="-">
@@ -167,7 +168,7 @@ export const OrderTableRow = memo(function OrderTableRow({
             </TooltipCell>
           </td>
           <td
-            className={cn(styles.compactCell, "text-sm border-r border-gray-200/20 dark:border-gray-700/20")}
+            className={cn(styles.compactCell, "text-sm")}
             style={{ width: `${columnWidths.memo}px`, minWidth: `${columnWidths.memo}px`, maxWidth: `${columnWidths.memo}px` }}
           >
             <TooltipCell content={order.extra || '-'}>
@@ -175,18 +176,18 @@ export const OrderTableRow = memo(function OrderTableRow({
             </TooltipCell>
           </td>
           <td
-            className={cn(styles.compactCell, "text-sm border-r border-gray-200/20 dark:border-gray-700/20")}
+            className={cn(styles.compactCell, "text-sm")}
             style={{ width: `${columnWidths.poi}px`, minWidth: `${columnWidths.poi}px`, maxWidth: `${columnWidths.poi}px` }}
           >
             <TooltipCell
               content={order.poiName || '-'}
-              className={cn(!order.poiName && "bg-muted px-1")}
+              className={cn(!order.poiName && "opacity-50")}
             >
               {order.poiName || '-'}
             </TooltipCell>
           </td>
           <td
-            className={cn(styles.distanceCell, "text-sm distance-color border-r border-gray-200/20 dark:border-gray-700/20")}
+            className={cn(styles.distanceCell, "text-sm distance-color")}
             style={{ width: `${columnWidths.distance}px`, minWidth: `${columnWidths.distance}px`, maxWidth: `${columnWidths.distance}px` }}
           >
             {(() => {
@@ -206,13 +207,13 @@ export const OrderTableRow = memo(function OrderTableRow({
                         <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                       </svg>
                     )}
-                    <span 
+                    <span
                       className={cn(
                         "font-bold px-1.5 py-0.5 rounded",
                         // 선택된 행일 때 배경색 추가하여 가시성 확보
-                        isSelected && "bg-white/90 dark:bg-gray-800/90"
+                        isSelected && "bg-white/80 dark:bg-[#1a1a1e]/80"
                       )}
-                      style={{ 
+                      style={{
                         color: distanceColor,
                         isolation: 'isolate'
                       }}
@@ -227,8 +228,7 @@ export const OrderTableRow = memo(function OrderTableRow({
           <td
             className={cn(
               styles.compactCell,
-              "text-sm font-bold text-center border-r border-gray-200/20 dark:border-gray-700/20",
-              !isSelected && "bg-gray-50 dark:bg-gray-800/50"
+              "text-sm font-bold text-center"
             )}
             style={{ width: `${columnWidths.drvNo}px`, minWidth: `${columnWidths.drvNo}px`, maxWidth: `${columnWidths.drvNo}px` }}
           >
@@ -239,8 +239,7 @@ export const OrderTableRow = memo(function OrderTableRow({
           <td
             className={cn(
               styles.compactCell,
-              "text-sm font-bold text-center border-r border-gray-200/20 dark:border-gray-700/20",
-              !isSelected && "bg-primary/5"
+              "text-sm font-bold text-center"
             )}
             style={{ width: `${columnWidths.licensePlate}px`, minWidth: `${columnWidths.licensePlate}px`, maxWidth: `${columnWidths.licensePlate}px` }}
           >
@@ -249,7 +248,7 @@ export const OrderTableRow = memo(function OrderTableRow({
             </TooltipCell>
           </td>
           <td
-            className={cn(styles.compactCell, "text-sm text-center px-1.5 border-r border-gray-200/20 dark:border-gray-700/20")}
+            className={cn(styles.compactCell, "text-sm text-center px-1.5")}
             style={{ width: `${columnWidths.acceptTime}px`, minWidth: `${columnWidths.acceptTime}px`, maxWidth: `${columnWidths.acceptTime}px` }}
           >
             <TooltipCell content={order.acceptAt && !isNaN(new Date(order.acceptAt).getTime()) ? format(new Date(order.acceptAt), 'HH:mm:ss', { locale: ko }) : '-'}>
@@ -257,7 +256,7 @@ export const OrderTableRow = memo(function OrderTableRow({
             </TooltipCell>
           </td>
           <td
-            className={cn(styles.compactCell, "text-sm border-r border-gray-200/20 dark:border-gray-700/20")}
+            className={cn(styles.compactCell, "text-sm")}
             style={{ width: `${columnWidths.agents}px`, minWidth: `${columnWidths.agents}px`, maxWidth: `${columnWidths.agents}px` }}
           >
             <TooltipCell content={formatAgentsDisplay(order.addAgent, order.acceptAgent)}>

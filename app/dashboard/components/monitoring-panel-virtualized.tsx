@@ -256,8 +256,8 @@ export function MonitoringPanelVirtualized() {
   }, [])
 
   return (
-    <div 
-      className="h-full overflow-hidden bg-white dark:bg-gray-900 shadow-lg flex flex-col border border-gray-200 dark:border-gray-700"
+    <div
+      className="h-full overflow-hidden bg-white dark:bg-[#0d0d0f] flex flex-col border border-gray-200 dark:border-[#1c1c20]/50"
       style={{ '--compact-row-height': `${COMPACT_ROW_HEIGHT}px` } as React.CSSProperties}
     >
       {/* 초기화 상태 표시 */}
@@ -270,18 +270,18 @@ export function MonitoringPanelVirtualized() {
         </div>
       )}
       {/* 주문 목록 - 가상 스크롤링을 위한 컨테이너 */}
-      <div className="flex-1 overflow-hidden bg-gray-50 dark:bg-gray-900/50 flex flex-col">
+      <div className="flex-1 overflow-hidden bg-gray-50 dark:bg-[#0d0d0f] flex flex-col">
         {/* 테이블 헤더 - 리사이즈 가능 */}
         <div
           className={cn(
-            "bg-white dark:bg-gray-800 border-b-2 border-gray-200 dark:border-gray-700 shadow-sm z-10 flex-shrink-0",
+            "bg-white dark:bg-[#121215] z-10 flex-shrink-0",
             isResizing && "select-none"
           )}
           style={{ paddingRight: `${scrollbarWidth}px` }}
         >
           <table className="w-full table-fixed" role="table" aria-label="주문 모니터링 테이블">
-            <thead className="bg-gradient-to-b from-white to-gray-50 dark:from-gray-800 dark:to-gray-850" role="rowgroup">
-              <tr className={cn(styles.compactHeader, "border-b border-gray-200 dark:border-gray-700")} role="row">
+            <thead className="bg-white dark:bg-[#121215]" role="rowgroup">
+              <tr className={cn(styles.compactHeader)} role="row">
                 {COLUMNS.map((column, index) => {
                   const width = columnWidths[column.id]
                   const isLastColumn = index === COLUMNS.length - 1
@@ -291,10 +291,9 @@ export function MonitoringPanelVirtualized() {
                     <th
                       key={column.id}
                       className={cn(
-                        "px-2 py-1 text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider relative group",
-                        !isLastColumn && "border-r border-gray-200/20 dark:border-gray-700/20",
+                        "px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider relative group",
                         isLastColumn && "text-center",
-                        resizingColumn === column.id && "bg-primary/10"
+                        resizingColumn === column.id && "bg-primary/5"
                       )}
                       style={{
                         width: isFlexColumn ? undefined : `${width}px`,
@@ -319,12 +318,12 @@ export function MonitoringPanelVirtualized() {
                             className={cn(
                               "absolute top-0 bottom-0 w-2 cursor-col-resize z-20",
                               isLeftHandle ? "left-0" : "right-0",
-                              "hover:bg-primary/30 transition-colors",
+                              "hover:bg-primary/20 transition-colors",
                               "after:absolute after:top-1/4 after:bottom-1/4 after:w-0.5",
                               isLeftHandle ? "after:left-0" : "after:right-0",
-                              "after:bg-gray-300 dark:after:bg-gray-600",
-                              "hover:after:bg-primary",
-                              resizingColumn === column.id && "bg-primary/50 after:bg-primary"
+                              "after:bg-gray-200 dark:after:bg-[#2a2a30]",
+                              "hover:after:bg-primary/60",
+                              resizingColumn === column.id && "bg-primary/30 after:bg-primary"
                             )}
                             onMouseDown={(e) => handleResizeMouseDown(column.id, e, isLeftHandle ? 'left' : 'right')}
                             onDoubleClick={() => {

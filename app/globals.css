@@ -63,26 +63,27 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    /* Modern toned-down dark theme */
+    --background: 240 6% 5%;           /* Deep charcoal #0d0d0f */
+    --foreground: 210 20% 95%;
+    --card: 240 5% 7%;                 /* Slightly lighter #121215 */
+    --card-foreground: 210 20% 95%;
+    --popover: 240 5% 7%;
+    --popover-foreground: 210 20% 95%;
     --primary: 158 64% 39%;
     --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --secondary: 240 4% 10%;           /* Subtle secondary #18181c */
+    --secondary-foreground: 210 20% 95%;
+    --muted: 240 4% 12%;               /* Muted areas #1c1c20 */
+    --muted-foreground: 220 10% 55%;
+    --accent: 240 4% 10%;
+    --accent-foreground: 210 20% 95%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
+    --border: 240 4% 13%;              /* Very subtle border #1f1f24 */
+    --input: 240 4% 12%;
     --ring: 158 64% 39%;
-    
+
     /* Flutter theme colors for action cards */
     --action-card-special-bg: 66 228 190; /* rgb(66, 228, 190) - teal/cyan */
     --action-card-special-text: 35 35 35; /* rgb(35, 35, 35) - very dark gray */

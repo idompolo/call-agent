@@ -14,7 +14,27 @@ import { distanceBetween, distanceToHuman } from '@/utils/distance'
 import styles from './monitoring-panel-virtualized.module.css'
 import { OrderTableRow } from './order-table-row'
 import { LoadingSkeleton, EmptyState } from '@/components/ui/loading-skeleton'
+import { useColumnWidths, DEFAULT_COLUMN_WIDTHS } from '@/hooks/use-column-widths'
 // StatusIndicator 제거 - 원래 상태 표시 방식 사용
+
+// 컬럼 정의 (순서대로)
+const COLUMNS = [
+  { id: 'date', label: '날짜', resizable: true },
+  { id: 'time', label: '시간', resizable: true },
+  { id: 'telephone', label: '전화번호', resizable: true },
+  { id: 'customerName', label: '고객명', resizable: true },
+  { id: 'calldong', label: '목적지', resizable: true },
+  { id: 'callplace', label: '호출장소', resizable: false }, // flex-1
+  { id: 'sms', label: '문자', resizable: true },
+  { id: 'memo', label: '메모', resizable: true },
+  { id: 'poi', label: 'POI', resizable: true },
+  { id: 'distance', label: '거리', resizable: true },
+  { id: 'drvNo', label: '기사', resizable: true },
+  { id: 'licensePlate', label: '차량', resizable: true },
+  { id: 'acceptTime', label: '배차시간', resizable: true },
+  { id: 'agents', label: '관여자', resizable: true },
+  { id: 'status', label: '상태', resizable: true },
+]
 
 // Performance optimized style constants - defined outside component
 const COMPACT_ROW_HEIGHT = 26 // Row height in pixels - 컴팩트하게 조정
@@ -27,6 +47,45 @@ export function MonitoringPanelVirtualized() {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const shouldAutoScroll = useRef(true)
   const [scrollbarWidth, setScrollbarWidth] = useState(0)
+
+  // 컬럼 너비 관리 훅
+  const {
+    columnWidths,
+    isResizing,
+    resizingColumn,
+    startResize,
+    onResize,
+    endResize,
+    resetColumnWidths,
+  } = useColumnWidths()
+
+  // 마우스 이동/업 이벤트 핸들러 (리사이즈용)
+  useEffect(() => {
+    if (!isResizing) return
+
+    const handleMouseMove = (e: MouseEvent) => {
+      onResize(e.clientX)
+    }
+
+    const handleMouseUp = () => {
+      endResize()
+    }
+
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isResizing, onResize, endResize])
+
+  // 리사이즈 핸들 마우스다운 핸들러
+  const handleResizeMouseDown = useCallback((columnId: string, e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    startResize(columnId, e.clientX)
+  }, [startResize])
 
   // 성능 최적화: Set으로 변환하여 O(1) 조회
   const areaFilterSet = useMemo(() => new Set(areaFilter), [areaFilter])
@@ -209,29 +268,70 @@ export function MonitoringPanelVirtualized() {
       )}
       {/* 주문 목록 - 가상 스크롤링을 위한 컨테이너 */}
       <div className="flex-1 overflow-hidden bg-gray-50 dark:bg-gray-900/50 flex flex-col">
-        {/* 테이블 헤더 - 모던 스타일 */}
-        <div 
-          className="bg-white dark:bg-gray-800 border-b-2 border-gray-200 dark:border-gray-700 shadow-sm z-10 flex-shrink-0"
+        {/* 테이블 헤더 - 리사이즈 가능 */}
+        <div
+          className={cn(
+            "bg-white dark:bg-gray-800 border-b-2 border-gray-200 dark:border-gray-700 shadow-sm z-10 flex-shrink-0",
+            isResizing && "select-none"
+          )}
           style={{ paddingRight: `${scrollbarWidth}px` }}
         >
           <table className="w-full table-fixed" role="table" aria-label="주문 모니터링 테이블">
             <thead className="bg-gradient-to-b from-white to-gray-50 dark:from-gray-800 dark:to-gray-850" role="rowgroup">
               <tr className={cn(styles.compactHeader, "border-b border-gray-200 dark:border-gray-700")} role="row">
-                <th className={cn(styles.compactHeaderCell, "text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider w-[40px] border-r border-gray-200/20 dark:border-gray-700/20")} role="columnheader" scope="col">날짜</th>
-                <th className={cn(styles.compactHeaderCell, "text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider w-[65px] border-r border-gray-200/20 dark:border-gray-700/20")} role="columnheader" scope="col">시간</th>
-                <th className="px-2 py-1 text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider w-[100px] border-r border-gray-200/20 dark:border-gray-700/20" role="columnheader" scope="col">전화번호</th>
-                <th className="px-2 py-1 text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider w-[140px] border-r border-gray-200/20 dark:border-gray-700/20" role="columnheader" scope="col">고객명</th>
-                <th className="px-2 py-1 text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider w-[100px] border-r border-gray-200/20 dark:border-gray-700/20" role="columnheader" scope="col">목적지</th>
-                <th className="px-2 py-1 text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider border-r border-gray-200/20 dark:border-gray-700/20" role="columnheader" scope="col">호출장소</th>
-                <th className="px-2 py-1 text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider w-[80px] border-r border-gray-200/20 dark:border-gray-700/20" role="columnheader" scope="col">문자</th>
-                <th className="px-2 py-1 text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider w-[100px] border-r border-gray-200/20 dark:border-gray-700/20" role="columnheader" scope="col">메모</th>
-                <th className="px-2 py-1 text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider w-[150px] border-r border-gray-200/20 dark:border-gray-700/20" role="columnheader" scope="col">POI</th>
-                <th className="px-2 py-1 text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider w-[70px] border-r border-gray-200/20 dark:border-gray-700/20" role="columnheader" scope="col">거리</th>
-                <th className="px-2 py-1 text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider w-[55px] border-r border-gray-200/20 dark:border-gray-700/20" role="columnheader" scope="col">기사</th>
-                <th className="px-2 py-1 text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider w-[70px] border-r border-gray-200/20 dark:border-gray-700/20" role="columnheader" scope="col">차량</th>
-                <th className="px-2 py-1 text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider w-[80px] border-r border-gray-200/20 dark:border-gray-700/20" role="columnheader" scope="col">배차시간</th>
-                <th className="px-2 py-1 text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider w-[50px] border-r border-gray-200/20 dark:border-gray-700/20" role="columnheader" scope="col">관여자</th>
-                <th className="px-2 py-1 text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider w-[70px] text-center" role="columnheader" scope="col">상태</th>
+                {COLUMNS.map((column, index) => {
+                  const width = columnWidths[column.id]
+                  const isLastColumn = index === COLUMNS.length - 1
+                  const isFlexColumn = column.id === 'callplace'
+
+                  return (
+                    <th
+                      key={column.id}
+                      className={cn(
+                        "px-2 py-1 text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider relative group",
+                        !isLastColumn && "border-r border-gray-200/20 dark:border-gray-700/20",
+                        isLastColumn && "text-center",
+                        resizingColumn === column.id && "bg-primary/10"
+                      )}
+                      style={{
+                        width: isFlexColumn ? undefined : `${width}px`,
+                        minWidth: isFlexColumn ? undefined : `${width}px`,
+                        maxWidth: isFlexColumn ? undefined : `${width}px`,
+                      }}
+                      role="columnheader"
+                      scope="col"
+                    >
+                      <span className="truncate block">{column.label}</span>
+
+                      {/* 리사이즈 핸들 */}
+                      {column.resizable && !isLastColumn && (
+                        <div
+                          className={cn(
+                            "absolute right-0 top-0 bottom-0 w-2 cursor-col-resize z-20",
+                            "hover:bg-primary/30 transition-colors",
+                            "after:absolute after:right-0 after:top-1/4 after:bottom-1/4 after:w-0.5",
+                            "after:bg-gray-300 dark:after:bg-gray-600",
+                            "hover:after:bg-primary",
+                            resizingColumn === column.id && "bg-primary/50 after:bg-primary"
+                          )}
+                          onMouseDown={(e) => handleResizeMouseDown(column.id, e)}
+                          onDoubleClick={() => {
+                            // 더블클릭 시 기본 너비로 복원 (리사이즈 시뮬레이션)
+                            const defaultWidth = DEFAULT_COLUMN_WIDTHS[column.id]
+                            if (defaultWidth && columnWidths[column.id] !== defaultWidth) {
+                              // 현재 너비와 기본 너비의 차이만큼 리사이즈 시뮬레이션
+                              const currentWidth = columnWidths[column.id]
+                              startResize(column.id, currentWidth)
+                              onResize(defaultWidth)
+                              endResize()
+                            }
+                          }}
+                          title="드래그하여 너비 조절 / 더블클릭하여 초기화"
+                        />
+                      )}
+                    </th>
+                  )
+                })}
               </tr>
             </thead>
           </table>
@@ -277,6 +377,7 @@ export function MonitoringPanelVirtualized() {
                       isSelected={selectedOrder?.id === order.id}
                       onSelect={selectOrder}
                       rowHeight={COMPACT_ROW_HEIGHT}
+                      columnWidths={columnWidths}
                     />
                   </div>
                 )

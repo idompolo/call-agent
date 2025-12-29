@@ -18,6 +18,7 @@ interface OrderTableRowProps {
   isSelected: boolean
   onSelect: (order: Order) => void
   rowHeight: number
+  columnWidths: Record<string, number>
 }
 
 // Memoized row component for better performance
@@ -25,7 +26,8 @@ export const OrderTableRow = memo(function OrderTableRow({
   order,
   isSelected,
   onSelect,
-  rowHeight
+  rowHeight,
+  columnWidths
 }: OrderTableRowProps) {
   // GPS 데이터 직접 구독 - 해당 기사의 GPS만 구독
   const gpsData = useGpsStore((state) => 
@@ -83,36 +85,46 @@ export const OrderTableRow = memo(function OrderTableRow({
             maxHeight: `${rowHeight}px`
           }}
         >
-          <td className={cn(
-            styles.compactCell,
-            "text-sm w-[40px] relative text-center border-r border-gray-200/20 dark:border-gray-700/20",
-            isSelected && "before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-gray-700 dark:before:bg-gray-300 before:animate-pulse"
-          )}
-          style={{ paddingLeft: '16px', paddingRight: '16px' }}>
+          <td
+            className={cn(
+              styles.compactCell,
+              "text-sm relative text-center border-r border-gray-200/20 dark:border-gray-700/20",
+              isSelected && "before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-gray-700 dark:before:bg-gray-300 before:animate-pulse"
+            )}
+            style={{ width: `${columnWidths.date}px`, minWidth: `${columnWidths.date}px`, maxWidth: `${columnWidths.date}px`, paddingLeft: '4px', paddingRight: '4px' }}
+          >
             <TooltipCell content={order.addAt && !isNaN(new Date(order.addAt).getTime()) ? format(new Date(order.addAt), 'MM/dd', { locale: ko }) : '-'}>
               {order.addAt && !isNaN(new Date(order.addAt).getTime()) ? format(new Date(order.addAt), 'M/d', { locale: ko }) : '-'}
             </TooltipCell>
           </td>
-          <td className={cn(styles.compactCell, "text-sm w-[65px] text-center border-r border-gray-200/20 dark:border-gray-700/20")}>
+          <td
+            className={cn(styles.compactCell, "text-sm text-center border-r border-gray-200/20 dark:border-gray-700/20")}
+            style={{ width: `${columnWidths.time}px`, minWidth: `${columnWidths.time}px`, maxWidth: `${columnWidths.time}px` }}
+          >
             <TooltipCell content={order.addAt && !isNaN(new Date(order.addAt).getTime()) ? format(new Date(order.addAt), 'HH:mm:ss', { locale: ko }) : '-'}>
               {order.addAt && !isNaN(new Date(order.addAt).getTime()) ? format(new Date(order.addAt), 'HH:mm:ss', { locale: ko }) : '-'}
             </TooltipCell>
           </td>
-          <td className={cn(
-            styles.compactCell, 
-            "text-sm w-[100px] text-center border-r border-gray-200/20 dark:border-gray-700/20",
-            // 선택되지 않은 경우에만 배경색 적용
-            !isSelected && "bg-primary/5"
-          )}>
+          <td
+            className={cn(
+              styles.compactCell,
+              "text-sm text-center border-r border-gray-200/20 dark:border-gray-700/20",
+              !isSelected && "bg-primary/5"
+            )}
+            style={{ width: `${columnWidths.telephone}px`, minWidth: `${columnWidths.telephone}px`, maxWidth: `${columnWidths.telephone}px` }}
+          >
             <TooltipCell content={order.telephone || '-'}>
               {order.telephone || '-'}
             </TooltipCell>
           </td>
-          <td className={cn(
-            styles.compactCell, 
-            "text-sm text-center w-[140px] border-r border-gray-200/20 dark:border-gray-700/20"
-          )}>
-            <TooltipCell 
+          <td
+            className={cn(
+              styles.compactCell,
+              "text-sm text-center border-r border-gray-200/20 dark:border-gray-700/20"
+            )}
+            style={{ width: `${columnWidths.customerName}px`, minWidth: `${columnWidths.customerName}px`, maxWidth: `${columnWidths.customerName}px` }}
+          >
+            <TooltipCell
               content={order.customerName || '-'}
               className={cn(
                 "font-medium",
@@ -120,12 +132,16 @@ export const OrderTableRow = memo(function OrderTableRow({
               )}
             />
           </td>
-          <td className={cn(styles.compactCell, "text-sm w-[100px] border-r border-gray-200/20 dark:border-gray-700/20")}>
+          <td
+            className={cn(styles.compactCell, "text-sm border-r border-gray-200/20 dark:border-gray-700/20")}
+            style={{ width: `${columnWidths.calldong}px`, minWidth: `${columnWidths.calldong}px`, maxWidth: `${columnWidths.calldong}px` }}
+          >
             <TooltipCell content={order.calldong || '-'}>
               {order.calldong || '-'}
             </TooltipCell>
           </td>
           <td className={cn(styles.compactCell, "text-sm border-r border-gray-200/20 dark:border-gray-700/20")}>
+            {/* callplace는 flex로 자동 확장 */}
             <div className="flex items-center gap-1">
               {order.selectAgent && (
                 <span className="w-4 h-4 rounded-full bg-primary text-primary-foreground text-[10px] flex items-center justify-center font-bold flex-shrink-0 isolate">
@@ -142,25 +158,37 @@ export const OrderTableRow = memo(function OrderTableRow({
               ))}
             </div>
           </td>
-          <td className={cn(styles.compactCell, "text-sm w-[80px] border-r border-gray-200/20 dark:border-gray-700/20")}>
+          <td
+            className={cn(styles.compactCell, "text-sm border-r border-gray-200/20 dark:border-gray-700/20")}
+            style={{ width: `${columnWidths.sms}px`, minWidth: `${columnWidths.sms}px`, maxWidth: `${columnWidths.sms}px` }}
+          >
             <TooltipCell content="-">
               -
             </TooltipCell>
           </td>
-          <td className={cn(styles.compactCell, "text-sm w-[100px] border-r border-gray-200/20 dark:border-gray-700/20")}>
+          <td
+            className={cn(styles.compactCell, "text-sm border-r border-gray-200/20 dark:border-gray-700/20")}
+            style={{ width: `${columnWidths.memo}px`, minWidth: `${columnWidths.memo}px`, maxWidth: `${columnWidths.memo}px` }}
+          >
             <TooltipCell content={order.extra || '-'}>
               {order.extra || '-'}
             </TooltipCell>
           </td>
-          <td className={cn(styles.compactCell, "text-sm w-[150px] border-r border-gray-200/20 dark:border-gray-700/20")}>
-            <TooltipCell 
+          <td
+            className={cn(styles.compactCell, "text-sm border-r border-gray-200/20 dark:border-gray-700/20")}
+            style={{ width: `${columnWidths.poi}px`, minWidth: `${columnWidths.poi}px`, maxWidth: `${columnWidths.poi}px` }}
+          >
+            <TooltipCell
               content={order.poiName || '-'}
               className={cn(!order.poiName && "bg-muted px-1")}
             >
               {order.poiName || '-'}
             </TooltipCell>
           </td>
-          <td className={cn(styles.distanceCell, "text-sm w-[70px] distance-color border-r border-gray-200/20 dark:border-gray-700/20")}>
+          <td
+            className={cn(styles.distanceCell, "text-sm distance-color border-r border-gray-200/20 dark:border-gray-700/20")}
+            style={{ width: `${columnWidths.distance}px`, minWidth: `${columnWidths.distance}px`, maxWidth: `${columnWidths.distance}px` }}
+          >
             {(() => {
               const distanceInfo = calculateDistance(order)
               const isOrderBoarding = isBoarding(order)
@@ -196,37 +224,50 @@ export const OrderTableRow = memo(function OrderTableRow({
               )
             })()}
           </td>
-          <td className={cn(
-            styles.compactCell, 
-            "text-sm font-bold w-[55px] text-center border-r border-gray-200/20 dark:border-gray-700/20",
-            // 선택되지 않은 경우에만 배경색 적용
-            !isSelected && "bg-gray-50 dark:bg-gray-800/50"
-          )}>
+          <td
+            className={cn(
+              styles.compactCell,
+              "text-sm font-bold text-center border-r border-gray-200/20 dark:border-gray-700/20",
+              !isSelected && "bg-gray-50 dark:bg-gray-800/50"
+            )}
+            style={{ width: `${columnWidths.drvNo}px`, minWidth: `${columnWidths.drvNo}px`, maxWidth: `${columnWidths.drvNo}px` }}
+          >
             <TooltipCell content={order.drvNo || '-'}>
               {order.drvNo || '-'}
             </TooltipCell>
           </td>
-          <td className={cn(
-            styles.compactCell, 
-            "text-sm font-bold w-[70px] text-center border-r border-gray-200/20 dark:border-gray-700/20",
-            // 선택되지 않은 경우에만 배경색 적용
-            !isSelected && "bg-primary/5"
-          )}>
+          <td
+            className={cn(
+              styles.compactCell,
+              "text-sm font-bold text-center border-r border-gray-200/20 dark:border-gray-700/20",
+              !isSelected && "bg-primary/5"
+            )}
+            style={{ width: `${columnWidths.licensePlate}px`, minWidth: `${columnWidths.licensePlate}px`, maxWidth: `${columnWidths.licensePlate}px` }}
+          >
             <TooltipCell content={order.licensePlate || '-'}>
               {order.licensePlate || '-'}
             </TooltipCell>
           </td>
-          <td className={cn(styles.compactCell, "text-sm w-[80px] text-center px-1.5 border-r border-gray-200/20 dark:border-gray-700/20")}>
+          <td
+            className={cn(styles.compactCell, "text-sm text-center px-1.5 border-r border-gray-200/20 dark:border-gray-700/20")}
+            style={{ width: `${columnWidths.acceptTime}px`, minWidth: `${columnWidths.acceptTime}px`, maxWidth: `${columnWidths.acceptTime}px` }}
+          >
             <TooltipCell content={order.acceptAt && !isNaN(new Date(order.acceptAt).getTime()) ? format(new Date(order.acceptAt), 'HH:mm:ss', { locale: ko }) : '-'}>
               {order.acceptAt && !isNaN(new Date(order.acceptAt).getTime()) ? format(new Date(order.acceptAt), 'HH:mm:ss', { locale: ko }) : '-'}
             </TooltipCell>
           </td>
-          <td className={cn(styles.compactCell, "text-sm w-[50px] border-r border-gray-200/20 dark:border-gray-700/20")}>
+          <td
+            className={cn(styles.compactCell, "text-sm border-r border-gray-200/20 dark:border-gray-700/20")}
+            style={{ width: `${columnWidths.agents}px`, minWidth: `${columnWidths.agents}px`, maxWidth: `${columnWidths.agents}px` }}
+          >
             <TooltipCell content={formatAgentsDisplay(order.addAgent, order.acceptAgent)}>
               {formatAgentsDisplay(order.addAgent, order.acceptAgent)}
             </TooltipCell>
           </td>
-          <td className={cn(styles.compactCell, "text-sm w-[70px] text-center")}>
+          <td
+            className={cn(styles.compactCell, "text-sm text-center")}
+            style={{ width: `${columnWidths.status}px`, minWidth: `${columnWidths.status}px`, maxWidth: `${columnWidths.status}px` }}
+          >
             <TooltipCell content={formatOrderStatus(order)}>
               {(() => {
                 const status = formatOrderStatus(order)

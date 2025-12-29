@@ -1,0 +1,124 @@
+{
+  "name": "taxi-control-nextjs",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist-electron/main/index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "electron:dev": "concurrently \"next dev\" \"wait-on http://localhost:3000 && tsc -p electron/tsconfig.json && electron .\"",
+    "electron:build": "next build && tsc -p electron/tsconfig.json && electron-builder",
+    "electron:build:mac": "next build && tsc -p electron/tsconfig.json && electron-builder --mac",
+    "electron:build:win": "next build && tsc -p electron/tsconfig.json && electron-builder --win",
+    "electron:build:linux": "next build && tsc -p electron/tsconfig.json && electron-builder --linux"
+  },
+  "build": {
+    "appId": "com.ftnh.callagent",
+    "productName": "Call Agent",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist-electron/**/*",
+      "out/**/*",
+      "package.json",
+      {
+        "from": "node_modules",
+        "to": "node_modules",
+        "filter": [
+          "mqtt/**/*",
+          "mqtt-packet/**/*",
+          "bl/**/*",
+          "readable-stream/**/*",
+          "buffer/**/*",
+          "process/**/*",
+          "process-nextick-args/**/*",
+          "events/**/*",
+          "inherits/**/*",
+          "util-deprecate/**/*",
+          "safe-buffer/**/*",
+          "string_decoder/**/*",
+          "number-allocator/**/*",
+          "debug/**/*",
+          "ms/**/*",
+          "lru-cache/**/*",
+          "typed-emitter/**/*",
+          "help-me/**/*",
+          "concat-stream/**/*",
+          "split2/**/*",
+          "commist/**/*",
+          "minimist/**/*",
+          "core-util-is/**/*",
+          "isarray/**/*",
+          "typedarray/**/*",
+          "ws/**/*",
+          "rfdc/**/*",
+          "extend/**/*",
+          "xtend/**/*",
+          "sbcs/**/*"
+        ]
+      }
+    ],
+    "asar": true,
+    "extraResources": [],
+    "mac": {
+      "target": ["dmg", "zip"],
+      "icon": "public/icon.icns",
+      "category": "public.app-category.business"
+    },
+    "win": {
+      "target": ["nsis", "portable"],
+      "icon": "public/icon.ico"
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "icon": "public/icon.png",
+      "category": "Office"
+    }
+  },
+  "dependencies": {
+    "mqtt": "^5.14.0"
+  },
+  "devDependencies": {
+    "@hookform/resolvers": "^3.6.0",
+    "@tanstack/react-query": "^5.40.0",
+    "@tanstack/react-query-devtools": "^5.40.0",
+    "@tanstack/react-virtual": "^3.13.12",
+    "axios": "^1.7.2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^3.6.0",
+    "lodash-es": "^4.17.21",
+    "lucide-react": "^0.379.0",
+    "next": "14.2.3",
+    "next-themes": "^0.3.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.51.5",
+    "socket.io-client": "^4.7.5",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^2.3.0",
+    "tailwindcss-animate": "^1.0.7",
+    "use-debounce": "^10.0.5",
+    "zod": "^3.23.8",
+    "zustand": "^4.5.2",
+    "@tailwindcss/forms": "^0.5.7",
+    "@tailwindcss/typography": "^0.5.13",
+    "@types/lodash-es": "^4.17.12",
+    "@types/node": "^20.14.2",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.19",
+    "concurrently": "^8.2.2",
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "14.2.3",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.3",
+    "typescript": "^5.4.5",
+    "wait-on": "^7.2.0"
+  }
+}

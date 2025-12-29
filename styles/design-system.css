@@ -1,0 +1,467 @@
+/* 
+ * Modern Design System for FTNH Web Client
+ * Based on modern design principles with improved consistency
+ */
+
+:root {
+  /* ========================================
+     1. COLOR SYSTEM - Modern & Accessible
+     ======================================== */
+  
+  /* Primary Brand Colors */
+  --primary-50: 240 249 255;   /* sky-50 */
+  --primary-100: 224 242 254;  /* sky-100 */
+  --primary-200: 186 230 253;  /* sky-200 */
+  --primary-300: 125 211 252;  /* sky-300 */
+  --primary-400: 56 189 248;   /* sky-400 */
+  --primary-500: 14 165 233;   /* sky-500 */
+  --primary-600: 2 132 199;    /* sky-600 */
+  --primary-700: 3 105 161;    /* sky-700 */
+  --primary-800: 7 89 133;     /* sky-800 */
+  --primary-900: 12 74 110;    /* sky-900 */
+  --primary-950: 8 47 73;      /* sky-950 */
+  
+  /* Neutral Colors - Refined Gray Scale */
+  --neutral-50: 250 250 250;   /* zinc-50 */
+  --neutral-100: 244 244 245;  /* zinc-100 */
+  --neutral-200: 228 228 231;  /* zinc-200 */
+  --neutral-300: 212 212 216;  /* zinc-300 */
+  --neutral-400: 161 161 170;  /* zinc-400 */
+  --neutral-500: 113 113 122;  /* zinc-500 */
+  --neutral-600: 82 82 91;     /* zinc-600 */
+  --neutral-700: 63 63 70;     /* zinc-700 */
+  --neutral-800: 39 39 42;     /* zinc-800 */
+  --neutral-900: 24 24 27;     /* zinc-900 */
+  --neutral-950: 9 9 11;       /* zinc-950 */
+  
+  /* Semantic Colors - Status & Feedback */
+  --success-light: 220 252 231;     /* green-100 */
+  --success-default: 34 197 94;     /* green-500 */
+  --success-dark: 21 128 61;        /* green-700 */
+  
+  --warning-light: 254 240 138;     /* yellow-200 */
+  --warning-default: 234 179 8;     /* yellow-500 */
+  --warning-dark: 161 98 7;         /* yellow-700 */
+  
+  --danger-light: 254 226 226;      /* red-100 */
+  --danger-default: 239 68 68;      /* red-500 */
+  --danger-dark: 185 28 28;         /* red-700 */
+  
+  --info-light: 219 234 254;        /* blue-100 */
+  --info-default: 59 130 246;       /* blue-500 */
+  --info-dark: 29 78 216;           /* blue-700 */
+  
+  /* ========================================
+     2. SPACING SYSTEM - 8px Grid
+     ======================================== */
+  --spacing-0: 0;
+  --spacing-px: 1px;
+  --spacing-0-5: 0.125rem;  /* 2px */
+  --spacing-1: 0.25rem;     /* 4px */
+  --spacing-1-5: 0.375rem;  /* 6px */
+  --spacing-2: 0.5rem;      /* 8px */
+  --spacing-3: 0.75rem;     /* 12px */
+  --spacing-4: 1rem;        /* 16px */
+  --spacing-5: 1.25rem;     /* 20px */
+  --spacing-6: 1.5rem;      /* 24px */
+  --spacing-8: 2rem;        /* 32px */
+  --spacing-10: 2.5rem;     /* 40px */
+  --spacing-12: 3rem;       /* 48px */
+  --spacing-16: 4rem;       /* 64px */
+  --spacing-20: 5rem;       /* 80px */
+  
+  /* ========================================
+     3. TYPOGRAPHY SYSTEM
+     ======================================== */
+  --font-sans: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+  
+  /* Font Sizes - Refined Scale */
+  --text-xs: 0.75rem;       /* 12px */
+  --text-sm: 0.875rem;      /* 14px */
+  --text-base: 1rem;        /* 16px */
+  --text-lg: 1.125rem;      /* 18px */
+  --text-xl: 1.25rem;       /* 20px */
+  --text-2xl: 1.5rem;       /* 24px */
+  --text-3xl: 1.875rem;     /* 30px */
+  --text-4xl: 2.25rem;      /* 36px */
+  --text-5xl: 3rem;         /* 48px */
+  
+  /* Line Heights */
+  --leading-none: 1;
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+  --leading-loose: 2;
+  
+  /* Font Weights */
+  --font-light: 300;
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  
+  /* ========================================
+     4. SHADOWS - Modern Elevation System
+     ======================================== */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  
+  /* Colored Shadows for Cards */
+  --shadow-primary: 0 4px 14px 0 rgb(14 165 233 / 0.15);
+  --shadow-success: 0 4px 14px 0 rgb(34 197 94 / 0.15);
+  --shadow-danger: 0 4px 14px 0 rgb(239 68 68 / 0.15);
+  
+  /* ========================================
+     5. BORDER RADIUS - Minimalist & Clean
+     ======================================== */
+  --radius-none: 0;
+  --radius-xs: 0.125rem;    /* 2px - 매우 미세한 모서리 */
+  --radius-sm: 0.25rem;     /* 4px - 작은 요소 (배지, 태그) */
+  --radius-md: 0.375rem;    /* 6px - 기본값 (버튼, 입력) */
+  --radius-lg: 0.5rem;      /* 8px - 카드, 패널 */
+  --radius-xl: 0.75rem;     /* 12px - 모달, 큰 카드 */
+  --radius-full: 9999px;    /* 완전 둥근 (아바타, 상태 점) */
+  
+  /* ========================================
+     6. TRANSITIONS - Smooth Animations
+     ======================================== */
+  --transition-none: none;
+  --transition-all: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: all 100ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-medium: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: all 350ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Easing Functions */
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  
+  /* ========================================
+     7. Z-INDEX SYSTEM - Layering
+     ======================================== */
+  --z-0: 0;
+  --z-10: 10;
+  --z-20: 20;
+  --z-30: 30;
+  --z-40: 40;
+  --z-50: 50;
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-modal: 1030;
+  --z-popover: 1040;
+  --z-tooltip: 1050;
+  
+  /* ========================================
+     8. LIGHT THEME MAPPING
+     ======================================== */
+  --background: rgb(var(--neutral-50));
+  --foreground: rgb(var(--neutral-900));
+  
+  --card: rgb(255 255 255);
+  --card-foreground: rgb(var(--neutral-900));
+  
+  --primary: rgb(var(--primary-500));
+  --primary-foreground: rgb(255 255 255);
+  
+  --secondary: rgb(var(--neutral-100));
+  --secondary-foreground: rgb(var(--neutral-900));
+  
+  --muted: rgb(var(--neutral-100));
+  --muted-foreground: rgb(var(--neutral-500));
+  
+  --accent: rgb(var(--primary-100));
+  --accent-foreground: rgb(var(--primary-900));
+  
+  --destructive: rgb(var(--danger-default));
+  --destructive-foreground: rgb(255 255 255);
+  
+  --border: rgb(var(--neutral-200));
+  --input: rgb(var(--neutral-200));
+  --ring: rgb(var(--primary-500));
+  
+  /* Status Colors */
+  --status-waiting: rgb(var(--success-default));
+  --status-accepted: rgb(var(--info-default));
+  --status-reserved: rgb(147 51 234); /* purple-500 */
+  --status-cancelled: rgb(var(--danger-default));
+  --status-processing: rgb(var(--warning-default));
+}
+
+/* ========================================
+   9. DARK THEME MAPPING
+   ======================================== */
+.dark {
+  --background: rgb(var(--neutral-950));
+  --foreground: rgb(var(--neutral-50));
+  
+  --card: rgb(var(--neutral-900));
+  --card-foreground: rgb(var(--neutral-50));
+  
+  --primary: rgb(var(--primary-400));
+  --primary-foreground: rgb(var(--neutral-900));
+  
+  --secondary: rgb(var(--neutral-800));
+  --secondary-foreground: rgb(var(--neutral-50));
+  
+  --muted: rgb(var(--neutral-800));
+  --muted-foreground: rgb(var(--neutral-400));
+  
+  --accent: rgb(var(--primary-900));
+  --accent-foreground: rgb(var(--primary-50));
+  
+  --destructive: rgb(var(--danger-default));
+  --destructive-foreground: rgb(var(--neutral-50));
+  
+  --border: rgb(var(--neutral-800));
+  --input: rgb(var(--neutral-800));
+  --ring: rgb(var(--primary-400));
+  
+  /* Status Colors - Dark Mode */
+  --status-waiting: rgb(34 197 94);      /* green-500 */
+  --status-accepted: rgb(59 130 246);    /* blue-500 */
+  --status-reserved: rgb(168 85 247);    /* purple-500 */
+  --status-cancelled: rgb(239 68 68);    /* red-500 */
+  --status-processing: rgb(234 179 8);   /* yellow-500 */
+}
+
+/* ========================================
+   10. UTILITY CLASSES
+   ======================================== */
+
+/* Glass Morphism Effect */
+.glass {
+  backdrop-filter: blur(12px);
+  background-color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .glass {
+  background-color: rgba(24, 24, 27, 0.7);
+  border: 1px solid rgba(63, 63, 70, 0.2);
+}
+
+/* Modern Card Styles */
+.card-modern {
+  background-color: var(--card);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  transition: var(--transition-all);
+}
+
+.card-modern:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+/* Gradient Backgrounds */
+.gradient-primary {
+  background: linear-gradient(135deg, rgb(var(--primary-400)), rgb(var(--primary-600)));
+}
+
+.gradient-success {
+  background: linear-gradient(135deg, rgb(var(--success-light)), rgb(var(--success-default)));
+}
+
+.gradient-mesh {
+  background-image: 
+    radial-gradient(at 27% 37%, rgb(var(--primary-300)) 0px, transparent 50%),
+    radial-gradient(at 97% 21%, rgb(var(--primary-400)) 0px, transparent 50%),
+    radial-gradient(at 52% 99%, rgb(var(--primary-500)) 0px, transparent 50%),
+    radial-gradient(at 10% 29%, rgb(var(--primary-600)) 0px, transparent 50%),
+    radial-gradient(at 97% 96%, rgb(var(--primary-400)) 0px, transparent 50%),
+    radial-gradient(at 33% 50%, rgb(var(--primary-300)) 0px, transparent 50%);
+}
+
+/* Text Gradient */
+.text-gradient {
+  background: linear-gradient(135deg, rgb(var(--primary-400)), rgb(var(--primary-600)));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Smooth Scrollbar */
+.smooth-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.smooth-scroll::-webkit-scrollbar-track {
+  background-color: rgb(var(--neutral-100));
+  border-radius: var(--radius-full);
+}
+
+.dark .smooth-scroll::-webkit-scrollbar-track {
+  background-color: rgb(var(--neutral-800));
+}
+
+.smooth-scroll::-webkit-scrollbar-thumb {
+  background-color: rgb(var(--neutral-400));
+  border-radius: var(--radius-full);
+}
+
+.smooth-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(var(--neutral-500));
+}
+
+/* ========================================
+   11. COMPONENT CLASSES
+   ======================================== */
+
+/* Modern Button Styles */
+.btn {
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--radius-lg);
+  font-weight: var(--font-medium);
+  transition: var(--transition-all);
+}
+
+.btn:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.btn-primary:hover {
+  background-color: rgb(var(--primary-600));
+}
+
+.btn-secondary {
+  background-color: var(--secondary);
+  color: var(--secondary-foreground);
+}
+
+.btn-secondary:hover {
+  background-color: rgb(var(--neutral-200));
+}
+
+.dark .btn-secondary:hover {
+  background-color: rgb(var(--neutral-700));
+}
+
+.btn-ghost {
+  background-color: transparent;
+  color: var(--foreground);
+}
+
+.btn-ghost:hover {
+  background-color: rgb(var(--neutral-100) / 0.5);
+}
+
+.dark .btn-ghost:hover {
+  background-color: rgb(var(--neutral-800) / 0.5);
+}
+
+/* Input Styles */
+.input-modern {
+  width: 100%;
+  padding: var(--spacing-2) var(--spacing-3);
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-base);
+  transition: var(--transition-fast);
+}
+
+.input-modern:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(var(--primary-500), 0.1);
+}
+
+/* Table Row States */
+.table-row-waiting {
+  background: linear-gradient(to right, rgba(var(--success-light), 0.5), transparent);
+  color: rgb(var(--success-dark));
+}
+
+.dark .table-row-waiting {
+  background: linear-gradient(to right, rgba(var(--success-default), 0.2), transparent);
+  color: rgb(var(--success-light));
+}
+
+.table-row-accepted {
+  background: linear-gradient(to right, rgba(var(--info-light), 0.3), transparent);
+  color: rgb(var(--info-dark));
+}
+
+.dark .table-row-accepted {
+  background: linear-gradient(to right, rgba(var(--info-default), 0.15), transparent);
+  color: rgb(var(--info-light));
+}
+
+.table-row-reserved {
+  background: linear-gradient(to right, rgba(147, 51, 234, 0.1), transparent);
+  color: rgb(147 51 234);
+}
+
+.dark .table-row-reserved {
+  background: linear-gradient(to right, rgba(168, 85, 247, 0.2), transparent);
+  color: rgb(196 181 253);
+}
+
+.table-row-cancelled {
+  background: linear-gradient(to right, rgba(var(--danger-light), 0.5), transparent);
+  color: rgb(var(--danger-dark));
+}
+
+.dark .table-row-cancelled {
+  background: linear-gradient(to right, rgba(var(--danger-default), 0.2), transparent);
+  color: rgb(var(--danger-light));
+}
+
+/* ========================================
+   12. ANIMATIONS
+   ======================================== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slideIn {
+  animation: slideIn 0.3s ease-out;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

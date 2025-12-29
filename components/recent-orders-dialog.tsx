@@ -1,12 +1,31 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { orderService } from '@/services/order-service'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { X, Phone, MapPin, Navigation, Clock, User } from 'lucide-react'
 import { getOrderTextClass, getOrderHoverClass } from '@/utils/order-colors'
 import { ActionCard } from '@/components/ui/action-card'
+import { useRecentOrderColumnWidths, RECENT_ORDER_DEFAULT_WIDTHS } from '@/hooks/use-column-widths'
+import { cn } from '@/lib/utils'
+
+// 컬럼 정의
+// callplace는 flex-1로 자동 확장되므로 리사이즈 불가
+// callplace 이전 컬럼: 오른쪽 핸들로 리사이즈
+// callplace 이후 컬럼: 왼쪽 핸들로 리사이즈 (handlePosition: 'left')
+const COLUMNS = [
+  { id: 'insertAt', label: '접수시각', resizable: true },
+  { id: 'customerName', label: '고객명', resizable: true },
+  { id: 'telephone', label: '전화번호', resizable: true },
+  { id: 'calldong', label: '목적지', resizable: true },
+  { id: 'callplace', label: '호출장소', resizable: false }, // flex-1
+  { id: 'callNoActions', label: '콜번호', resizable: true, handlePosition: 'left' },
+  { id: 'statusAt', label: '처리시간', resizable: true, handlePosition: 'left' },
+  { id: 'status', label: '상태', resizable: true, handlePosition: 'left' },
+  { id: 'agents', label: '접_배', resizable: true, handlePosition: 'left' },
+  { id: 'memo', label: '메모', resizable: true, handlePosition: 'left' },
+]
 
 export interface RecentOrder {
   order_id: number
@@ -37,6 +56,44 @@ export function RecentOrdersDialog({ telephone, onSelectOrder, onSelectionChange
   const [orders, setOrders] = useState<RecentOrder[]>([])
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
+
+  // 컬럼 너비 관리 훅
+  const {
+    columnWidths,
+    isResizing,
+    resizingColumn,
+    startResize,
+    onResize,
+    endResize,
+  } = useRecentOrderColumnWidths()
+
+  // 마우스 이동/업 이벤트 핸들러 (리사이즈용)
+  useEffect(() => {
+    if (!isResizing) return
+
+    const handleMouseMove = (e: MouseEvent) => {
+      onResize(e.clientX)
+    }
+
+    const handleMouseUp = () => {
+      endResize()
+    }
+
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isResizing, onResize, endResize])
+
+  // 리사이즈 핸들 마우스다운 핸들러
+  const handleResizeMouseDown = useCallback((columnId: string, e: React.MouseEvent, direction: 'right' | 'left' = 'right') => {
+    e.preventDefault()
+    e.stopPropagation()
+    startResize(columnId, e.clientX, direction)
+  }, [startResize])
 
   useEffect(() => {
     loadRecentOrders()
@@ -132,18 +189,83 @@ export function RecentOrdersDialog({ telephone, onSelectOrder, onSelectionChange
       >
         {/* Content with column headers */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Column Headers */}
-          <div className="flex items-center gap-2 px-2 py-1.5 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-850 border-b border-gray-200 dark:border-gray-700 text-[11px] font-semibold text-gray-600 dark:text-gray-300">
-            <span className="w-[100px] text-center tracking-wide">접수시각</span>
-            <span className="w-[120px] text-center tracking-wide">고객명</span>
-            <span className="w-[85px] text-center tracking-wide">전화번호</span>
-            <span className="w-[120px] text-center tracking-wide">목적지</span>
-            <span className="flex-1 text-center tracking-wide">호출장소</span>
-            <span className="w-[480px] text-center tracking-wide">콜번호</span>
-            <span className="w-[55px] text-center tracking-wide">처리시간</span>
-            <span className="w-[65px] text-center tracking-wide">상태</span>
-            <span className="w-[40px] text-center tracking-wide">접_배</span>
-            <span className="w-[80px] text-center tracking-wide">메모</span>
+          {/* Column Headers - 리사이즈 가능 */}
+          <div className={cn(
+            "flex items-center gap-2 px-2 py-1.5 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-850 border-b border-gray-200 dark:border-gray-700 text-[11px] font-semibold text-gray-600 dark:text-gray-300",
+            isResizing && "select-none"
+          )}>
+            {COLUMNS.map((column, index) => {
+              const width = columnWidths[column.id]
+              const isLastColumn = index === COLUMNS.length - 1
+              const isFlexColumn = column.id === 'callplace' // flex-1 컬럼
+              const isLeftHandle = (column as any).handlePosition === 'left'
+
+              return (
+                <div
+                  key={column.id}
+                  className={cn(
+                    "text-center tracking-wide relative group",
+                    isFlexColumn ? "flex-1 min-w-0" : "shrink-0",
+                    resizingColumn === column.id && "bg-blue-100 dark:bg-blue-900/30"
+                  )}
+                  style={isFlexColumn ? undefined : {
+                    width: `${width}px`,
+                    minWidth: `${width}px`,
+                    maxWidth: `${width}px`,
+                  }}
+                >
+                  <span className="truncate block">{column.label}</span>
+
+                  {/* 리사이즈 핸들 - 오른쪽 (callplace 이전 컬럼) */}
+                  {column.resizable && !isLeftHandle && !isLastColumn && (
+                    <div
+                      className={cn(
+                        "absolute right-0 top-0 bottom-0 w-2 cursor-col-resize z-20",
+                        "hover:bg-blue-400/30 transition-colors",
+                        "after:absolute after:right-0 after:top-1/4 after:bottom-1/4 after:w-0.5",
+                        "after:bg-gray-300 dark:after:bg-gray-600",
+                        "hover:after:bg-blue-500",
+                        resizingColumn === column.id && "bg-blue-500/50 after:bg-blue-500"
+                      )}
+                      onMouseDown={(e) => handleResizeMouseDown(column.id, e)}
+                      onDoubleClick={() => {
+                        const defaultWidth = RECENT_ORDER_DEFAULT_WIDTHS[column.id]
+                        if (defaultWidth && columnWidths[column.id] !== defaultWidth) {
+                          startResize(column.id, columnWidths[column.id])
+                          onResize(defaultWidth)
+                          endResize()
+                        }
+                      }}
+                      title="드래그하여 너비 조절 / 더블클릭하여 초기화"
+                    />
+                  )}
+
+                  {/* 리사이즈 핸들 - 왼쪽 (callplace 이후 컬럼) */}
+                  {column.resizable && isLeftHandle && (
+                    <div
+                      className={cn(
+                        "absolute left-0 top-0 bottom-0 w-2 cursor-col-resize z-20",
+                        "hover:bg-blue-400/30 transition-colors",
+                        "after:absolute after:left-0 after:top-1/4 after:bottom-1/4 after:w-0.5",
+                        "after:bg-gray-300 dark:after:bg-gray-600",
+                        "hover:after:bg-blue-500",
+                        resizingColumn === column.id && "bg-blue-500/50 after:bg-blue-500"
+                      )}
+                      onMouseDown={(e) => handleResizeMouseDown(column.id, e, 'left')}
+                      onDoubleClick={() => {
+                        const defaultWidth = RECENT_ORDER_DEFAULT_WIDTHS[column.id]
+                        if (defaultWidth && columnWidths[column.id] !== defaultWidth) {
+                          startResize(column.id, columnWidths[column.id], 'left')
+                          onResize(defaultWidth)
+                          endResize()
+                        }
+                      }}
+                      title="드래그하여 너비 조절 / 더블클릭하여 초기화"
+                    />
+                  )}
+                </div>
+              )
+            })}
           </div>
           
           {/* Data Rows */}
@@ -182,57 +304,74 @@ export function RecentOrdersDialog({ telephone, onSelectOrder, onSelectionChange
                     getOrderHoverClass(isCancelled, isAccepted, isWaiting, selectedId === order.order_id)
                   }`}
                 >
-                  {/* 한 줄로 모든 정보 표시 - Flutter 순서대로 */}
+                  {/* 한 줄로 모든 정보 표시 - 컬럼 너비 동적 적용 */}
                   <div className="flex items-center gap-2 text-sm h-6">
                     {/* 1. 접수시각 */}
-                    <span className={`w-[130px] ${
-                      getOrderTextClass(isCancelled, isAccepted, isWaiting, selectedId === order.order_id, 'light')
-                    }`}>
+                    <span
+                      className={`shrink-0 truncate ${
+                        getOrderTextClass(isCancelled, isAccepted, isWaiting, selectedId === order.order_id, 'light')
+                      }`}
+                      style={{ width: `${columnWidths.insertAt}px`, minWidth: `${columnWidths.insertAt}px` }}
+                    >
                       {format(new Date(order.order_insertAt), '(MM/dd) HH:mm:ss')}
                     </span>
-                    
+
                     {/* 2. 고객명 */}
-                    <span className={`font-medium w-[120px] truncate ${
-                      getOrderTextClass(isCancelled, isAccepted, isWaiting, selectedId === order.order_id)
-                    }`}>
+                    <span
+                      className={`font-medium shrink-0 truncate ${
+                        getOrderTextClass(isCancelled, isAccepted, isWaiting, selectedId === order.order_id)
+                      }`}
+                      style={{ width: `${columnWidths.customerName}px`, minWidth: `${columnWidths.customerName}px` }}
+                    >
                       {order.user_name || '-'}
                     </span>
-                    
+
                     {/* 3. 전화번호 */}
-                    <span className={`w-[85px] ${
-                      getOrderTextClass(isCancelled, isAccepted, isWaiting, selectedId === order.order_id, 'light')
-                    }`}>
+                    <span
+                      className={`shrink-0 truncate ${
+                        getOrderTextClass(isCancelled, isAccepted, isWaiting, selectedId === order.order_id, 'light')
+                      }`}
+                      style={{ width: `${columnWidths.telephone}px`, minWidth: `${columnWidths.telephone}px` }}
+                    >
                       {order.user_telephone}
                     </span>
-                    
+
                     {/* 4. 목적지 */}
-                    <span className={`w-[120px] truncate ${
-                      getOrderTextClass(isCancelled, isAccepted, isWaiting, selectedId === order.order_id)
-                    }`}>
+                    <span
+                      className={`shrink-0 truncate ${
+                        getOrderTextClass(isCancelled, isAccepted, isWaiting, selectedId === order.order_id)
+                      }`}
+                      style={{ width: `${columnWidths.calldong}px`, minWidth: `${columnWidths.calldong}px` }}
+                    >
                       {order.calldong || '-'}
                     </span>
-                    
-                    {/* 5. 호출장소 */}
-                    <span className={`flex-1 truncate ${
-                      getOrderTextClass(isCancelled, isAccepted, isWaiting, selectedId === order.order_id)
-                    }`}>
+
+                    {/* 5. 호출장소 (flex-1) */}
+                    <span
+                      className={`flex-1 min-w-0 truncate ${
+                        getOrderTextClass(isCancelled, isAccepted, isWaiting, selectedId === order.order_id)
+                      }`}
+                    >
                       {order.callplace || '-'}
                     </span>
-                    
+
                     {/* 6. 콜번호 + 액션 카드 */}
-                    <div className={`w-[480px] flex items-center gap-1`}>
+                    <div
+                      className="shrink-0 flex items-center gap-1"
+                      style={{ width: `${columnWidths.callNoActions}px`, minWidth: `${columnWidths.callNoActions}px` }}
+                    >
                       <span className={`text-center font-medium text-sm ${
                         getOrderTextClass(isCancelled, isAccepted, isWaiting, selectedId === order.order_id)
                       }`}>
                         {order.car_callNo || '-'}
                       </span>
                       {order.acts && (
-                        <div className="flex items-center gap-0.5">
+                        <div className="flex items-center gap-0.5 overflow-hidden">
                           {order.acts.split('|').map((actStr, idx) => {
                             const parts = actStr.split('_')
                             const name = parts[0] || ''
                             const time = parts[1] ? new Date(parseInt(parts[1]) * 1000) : new Date()
-                            
+
                             return (
                               <ActionCard
                                 key={idx}
@@ -244,38 +383,55 @@ export function RecentOrdersDialog({ telephone, onSelectOrder, onSelectionChange
                         </div>
                       )}
                     </div>
-                    
+
                     {/* 7. 처리시간 */}
-                    <span className={`w-[55px] text-center ${
-                      getOrderTextClass(isCancelled, isAccepted, isWaiting, selectedId === order.order_id, 'muted')
-                    }`}>
+                    <span
+                      className={`shrink-0 text-center ${
+                        getOrderTextClass(isCancelled, isAccepted, isWaiting, selectedId === order.order_id, 'muted')
+                      }`}
+                      style={{ width: `${columnWidths.statusAt}px`, minWidth: `${columnWidths.statusAt}px` }}
+                    >
                       {order.statusAt ? format(new Date(order.statusAt), 'HH:mm:ss') : '-'}
                     </span>
-                    
+
                     {/* 8. 상태 */}
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold w-[75px] text-center inline-flex items-center justify-center ${
-                      selectedId === order.order_id 
-                        ? 'bg-blue-700 text-white border border-blue-600'
-                        : order.status === '취소' 
-                        ? 'bg-gradient-to-r from-red-100 to-red-50 text-red-700 dark:from-red-900/30 dark:to-red-800/20 dark:text-red-400 border border-red-200 dark:border-red-700'
-                        : order.status === '완료'
-                        ? 'bg-gradient-to-r from-green-100 to-green-50 text-green-700 dark:from-green-900/30 dark:to-green-800/20 dark:text-green-400 border border-green-200 dark:border-green-700'
-                        : 'bg-gradient-to-r from-gray-100 to-gray-50 text-gray-700 dark:from-gray-800 dark:to-gray-750 dark:text-gray-400 border border-gray-200 dark:border-gray-700'
-                    }`}>
-                      {order.status || '대기'}
-                    </span>
-                    
+                    <div
+                      className="shrink-0 flex items-center justify-center"
+                      style={{ width: `${columnWidths.status}px`, minWidth: `${columnWidths.status}px` }}
+                    >
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-xs font-semibold text-center inline-flex items-center justify-center whitespace-nowrap ${
+                          selectedId === order.order_id
+                            ? 'bg-blue-700 text-white border border-blue-600'
+                            : order.status === '취소'
+                            ? 'bg-gradient-to-r from-red-100 to-red-50 text-red-700 dark:from-red-900/30 dark:to-red-800/20 dark:text-red-400 border border-red-200 dark:border-red-700'
+                            : order.status === '완료'
+                            ? 'bg-gradient-to-r from-green-100 to-green-50 text-green-700 dark:from-green-900/30 dark:to-green-800/20 dark:text-green-400 border border-green-200 dark:border-green-700'
+                            : 'bg-gradient-to-r from-gray-100 to-gray-50 text-gray-700 dark:from-gray-800 dark:to-gray-750 dark:text-gray-400 border border-gray-200 dark:border-gray-700'
+                        }`}
+                      >
+                        {order.status || '대기'}
+                      </span>
+                    </div>
+
                     {/* 9. 접_배 (접수상담원_배차상담원) */}
-                    <span className={`w-[40px] text-center text-[11px] ${
-                      getOrderTextClass(isCancelled, isAccepted, isWaiting, selectedId === order.order_id, 'muted')
-                    }`}>
+                    <span
+                      className={`shrink-0 text-center text-[11px] ${
+                        getOrderTextClass(isCancelled, isAccepted, isWaiting, selectedId === order.order_id, 'muted')
+                      }`}
+                      style={{ width: `${columnWidths.agents}px`, minWidth: `${columnWidths.agents}px` }}
+                    >
                       {`${order.start_agent?.toString().replace('상담원#', '') || ''}_${order.end_agent?.toString().replace('상담원#', '') || ''}`}
                     </span>
-                    
+
                     {/* 10. 메모 */}
-                    <span className={`w-[80px] truncate ${
-                      getOrderTextClass(isCancelled, isAccepted, isWaiting, selectedId === order.order_id, 'muted')
-                    }`} title={order.order_extra || ''}>
+                    <span
+                      className={`shrink-0 truncate ${
+                        getOrderTextClass(isCancelled, isAccepted, isWaiting, selectedId === order.order_id, 'muted')
+                      }`}
+                      style={{ width: `${columnWidths.memo}px`, minWidth: `${columnWidths.memo}px` }}
+                      title={order.order_extra || ''}
+                    >
                       {order.order_extra || '-'}
                     </span>
                   </div>

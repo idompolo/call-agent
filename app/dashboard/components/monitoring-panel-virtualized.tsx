@@ -18,6 +18,9 @@ import { useColumnWidths, DEFAULT_COLUMN_WIDTHS } from '@/hooks/use-column-width
 // StatusIndicator 제거 - 원래 상태 표시 방식 사용
 
 // 컬럼 정의 (순서대로)
+// callplace는 flex-1로 자동 확장되므로 리사이즈 불가
+// callplace 이전 컬럼: 오른쪽 핸들로 리사이즈
+// callplace 이후 컬럼: 왼쪽 핸들로 리사이즈 (handlePosition: 'left')
 const COLUMNS = [
   { id: 'date', label: '날짜', resizable: true },
   { id: 'time', label: '시간', resizable: true },
@@ -25,15 +28,15 @@ const COLUMNS = [
   { id: 'customerName', label: '고객명', resizable: true },
   { id: 'calldong', label: '목적지', resizable: true },
   { id: 'callplace', label: '호출장소', resizable: false }, // flex-1
-  { id: 'sms', label: '문자', resizable: true },
-  { id: 'memo', label: '메모', resizable: true },
-  { id: 'poi', label: 'POI', resizable: true },
-  { id: 'distance', label: '거리', resizable: true },
-  { id: 'drvNo', label: '기사', resizable: true },
-  { id: 'licensePlate', label: '차량', resizable: true },
-  { id: 'acceptTime', label: '배차시간', resizable: true },
-  { id: 'agents', label: '관여자', resizable: true },
-  { id: 'status', label: '상태', resizable: true },
+  { id: 'sms', label: '문자', resizable: true, handlePosition: 'left' },
+  { id: 'memo', label: '메모', resizable: true, handlePosition: 'left' },
+  { id: 'poi', label: 'POI', resizable: true, handlePosition: 'left' },
+  { id: 'distance', label: '거리', resizable: true, handlePosition: 'left' },
+  { id: 'drvNo', label: '기사', resizable: true, handlePosition: 'left' },
+  { id: 'licensePlate', label: '차량', resizable: true, handlePosition: 'left' },
+  { id: 'acceptTime', label: '배차시간', resizable: true, handlePosition: 'left' },
+  { id: 'agents', label: '관여자', resizable: true, handlePosition: 'left' },
+  { id: 'status', label: '상태', resizable: true, handlePosition: 'left' },
 ]
 
 // Performance optimized style constants - defined outside component
@@ -81,10 +84,10 @@ export function MonitoringPanelVirtualized() {
   }, [isResizing, onResize, endResize])
 
   // 리사이즈 핸들 마우스다운 핸들러
-  const handleResizeMouseDown = useCallback((columnId: string, e: React.MouseEvent) => {
+  const handleResizeMouseDown = useCallback((columnId: string, e: React.MouseEvent, direction: 'right' | 'left' = 'right') => {
     e.preventDefault()
     e.stopPropagation()
-    startResize(columnId, e.clientX)
+    startResize(columnId, e.clientX, direction)
   }, [startResize])
 
   // 성능 최적화: Set으로 변환하여 O(1) 조회
@@ -304,31 +307,41 @@ export function MonitoringPanelVirtualized() {
                       <span className="truncate block">{column.label}</span>
 
                       {/* 리사이즈 핸들 */}
-                      {column.resizable && !isLastColumn && (
-                        <div
-                          className={cn(
-                            "absolute right-0 top-0 bottom-0 w-2 cursor-col-resize z-20",
-                            "hover:bg-primary/30 transition-colors",
-                            "after:absolute after:right-0 after:top-1/4 after:bottom-1/4 after:w-0.5",
-                            "after:bg-gray-300 dark:after:bg-gray-600",
-                            "hover:after:bg-primary",
-                            resizingColumn === column.id && "bg-primary/50 after:bg-primary"
-                          )}
-                          onMouseDown={(e) => handleResizeMouseDown(column.id, e)}
-                          onDoubleClick={() => {
-                            // 더블클릭 시 기본 너비로 복원 (리사이즈 시뮬레이션)
-                            const defaultWidth = DEFAULT_COLUMN_WIDTHS[column.id]
-                            if (defaultWidth && columnWidths[column.id] !== defaultWidth) {
-                              // 현재 너비와 기본 너비의 차이만큼 리사이즈 시뮬레이션
-                              const currentWidth = columnWidths[column.id]
-                              startResize(column.id, currentWidth)
-                              onResize(defaultWidth)
-                              endResize()
-                            }
-                          }}
-                          title="드래그하여 너비 조절 / 더블클릭하여 초기화"
-                        />
-                      )}
+                      {/* 오른쪽 핸들: callplace 이전 컬럼 (마지막 컬럼 제외) */}
+                      {/* 왼쪽 핸들: callplace 이후 컬럼 (마지막 컬럼 포함) */}
+                      {column.resizable && (() => {
+                        const isLeftHandle = column.handlePosition === 'left'
+                        // 오른쪽 핸들은 마지막 컬럼 제외, 왼쪽 핸들은 마지막 컬럼도 포함
+                        if (!isLeftHandle && isLastColumn) return null
+
+                        return (
+                          <div
+                            className={cn(
+                              "absolute top-0 bottom-0 w-2 cursor-col-resize z-20",
+                              isLeftHandle ? "left-0" : "right-0",
+                              "hover:bg-primary/30 transition-colors",
+                              "after:absolute after:top-1/4 after:bottom-1/4 after:w-0.5",
+                              isLeftHandle ? "after:left-0" : "after:right-0",
+                              "after:bg-gray-300 dark:after:bg-gray-600",
+                              "hover:after:bg-primary",
+                              resizingColumn === column.id && "bg-primary/50 after:bg-primary"
+                            )}
+                            onMouseDown={(e) => handleResizeMouseDown(column.id, e, isLeftHandle ? 'left' : 'right')}
+                            onDoubleClick={() => {
+                              // 더블클릭 시 기본 너비로 복원 (리사이즈 시뮬레이션)
+                              const defaultWidth = DEFAULT_COLUMN_WIDTHS[column.id]
+                              if (defaultWidth && columnWidths[column.id] !== defaultWidth) {
+                                // 현재 너비와 기본 너비의 차이만큼 리사이즈 시뮬레이션
+                                const currentWidth = columnWidths[column.id]
+                                startResize(column.id, currentWidth, isLeftHandle ? 'left' : 'right')
+                                onResize(defaultWidth)
+                                endResize()
+                              }
+                            }}
+                            title="드래그하여 너비 조절 / 더블클릭하여 초기화"
+                          />
+                        )
+                      })()}
                     </th>
                   )
                 })}

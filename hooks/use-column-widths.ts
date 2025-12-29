@@ -122,6 +122,7 @@ export function useColumnWidths(): UseColumnWidthsReturn {
 
   const resizeStartX = useRef<number>(0)
   const resizeStartWidth = useRef<number>(0)
+  const resizeDirection = useRef<'right' | 'left'>('right')
 
   // localStorage에서 저장된 너비 로드
   useEffect(() => {
@@ -173,7 +174,7 @@ export function useColumnWidths(): UseColumnWidthsReturn {
   }, [])
 
   // 리사이즈 시작
-  const startResize = useCallback((columnId: string, startX: number) => {
+  const startResize = useCallback((columnId: string, startX: number, direction: 'right' | 'left' = 'right') => {
     // callplace는 flex이므로 리사이즈 불가
     if (columnId === 'callplace') return
 
@@ -181,6 +182,7 @@ export function useColumnWidths(): UseColumnWidthsReturn {
     setResizingColumn(columnId)
     resizeStartX.current = startX
     resizeStartWidth.current = columnWidths[columnId] || DEFAULT_COLUMN_WIDTHS[columnId]
+    resizeDirection.current = direction
   }, [columnWidths])
 
   // 리사이즈 중
@@ -188,7 +190,9 @@ export function useColumnWidths(): UseColumnWidthsReturn {
     if (!isResizing || !resizingColumn) return
 
     const delta = currentX - resizeStartX.current
-    const newWidth = resizeStartWidth.current + delta
+    // 왼쪽 핸들의 경우 델타를 반대로 적용 (왼쪽으로 드래그 = 넓어짐)
+    const adjustedDelta = resizeDirection.current === 'left' ? -delta : delta
+    const newWidth = resizeStartWidth.current + adjustedDelta
 
     // 실시간으로 너비 업데이트 (저장은 하지 않음)
     setColumnWidths(prev => ({
@@ -203,12 +207,15 @@ export function useColumnWidths(): UseColumnWidthsReturn {
   // 리사이즈 종료
   const endResize = useCallback(() => {
     if (isResizing) {
-      // 최종 값을 localStorage에 저장
-      saveToStorage(columnWidths)
+      // 최신 columnWidths를 가져오기 위해 setState 콜백 사용
+      setColumnWidths(currentWidths => {
+        saveToStorage(currentWidths)
+        return currentWidths
+      })
     }
     setIsResizing(false)
     setResizingColumn(null)
-  }, [isResizing, columnWidths, saveToStorage])
+  }, [isResizing, saveToStorage])
 
   return {
     columnWidths,

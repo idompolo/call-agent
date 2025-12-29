@@ -48,10 +48,21 @@ export function AreaSelectorModern() {
         setAreaFilter([...areaItems])
       }
     } else {
-      if (areaFilter.includes(area)) {
-        setAreaFilter(areaFilter.filter(a => a !== area))
+      // 개별 지역 선택 시 'all'을 제거하고 개별 필터링 모드로 전환
+      const filterWithoutAll = areaFilter.filter(a => a !== 'all')
+
+      if (filterWithoutAll.includes(area)) {
+        // 이미 선택된 지역 해제
+        setAreaFilter(filterWithoutAll.filter(a => a !== area))
       } else {
-        setAreaFilter([...areaFilter, area])
+        // 새 지역 추가
+        const newFilter = [...filterWithoutAll, area]
+        // 모든 개별 지역이 선택되면 'all' 포함하여 전체 선택 상태로
+        if (newFilter.length === areaItems.length - 1) {
+          setAreaFilter([...areaItems])
+        } else {
+          setAreaFilter(newFilter)
+        }
       }
     }
   }

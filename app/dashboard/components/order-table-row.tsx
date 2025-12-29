@@ -70,7 +70,7 @@ export const OrderTableRow = memo(function OrderTableRow({
           aria-selected={isSelected}
           aria-label={`주문 ${order.id}: ${order.customerName || '고객명 없음'}, 상태: ${formatOrderStatus(order)}`}
           className={cn(
-            "group cursor-pointer transition-colors duration-200 relative",
+            "group cursor-pointer transition-colors duration-200 relative border-b border-gray-200 dark:border-[#2a2a30]",
             // 선택된 행만 배경색 적용
             isSelected && "bg-gray-200 dark:bg-[#2a2a30] z-30",
             // 호버 효과

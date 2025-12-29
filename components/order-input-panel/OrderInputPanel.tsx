@@ -733,7 +733,10 @@ export function OrderInputPanel({ className }: OrderInputPanelProps) {
           />
           <div
             className="fixed z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-lg py-1"
-            style={{ left: reserveMenuPosition.x, top: reserveMenuPosition.y }}
+            style={{
+              left: reserveMenuPosition.x - 280, // 모달 너비만큼 왼쪽으로 이동
+              top: reserveMenuPosition.y
+            }}
           >
             <div className="p-2">
               <div className="text-xs font-medium mb-2">예약으로 진행</div>

@@ -62,12 +62,6 @@ npm start
 
 ## 환경 변수
 
-`.env.local` 파일에 다음 환경 변수를 설정하세요:
-
-```
-NEXT_PUBLIC_API_BASE_URL=http://211.55.114.181:3000
-NEXT_PUBLIC_SOCKET_URL=ws://211.55.114.181:7012
-```
 
 ## 마이그레이션 현황
 

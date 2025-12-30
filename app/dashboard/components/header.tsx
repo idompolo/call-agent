@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useAuthStore } from '@/store/auth-store'
 import { useSocketStore } from '@/store/socket-store'
 import { Menu, Settings, Users, MessageSquare, LogOut, ChevronDown, Edit3 } from 'lucide-react'
+import { isElectron } from '@/lib/electron'
 import { AreaSelectorModern } from './area-selector-modern'
 import { OrderFilter } from './order-filter'
 import { SearchField } from './search-field'
@@ -41,9 +42,17 @@ export function Header({ onMenuClick, onSettingsClick, onEditClick }: HeaderProp
 
   // Electron macOS 환경 체크 (트래픽 라이트 버튼 처리용)
   const [isElectronMacApp, setIsElectronMacApp] = useState(false)
+  const [appVersion, setAppVersion] = useState<string | null>(null)
 
   useEffect(() => {
     setIsElectronMacApp(isElectronMac())
+
+    // Electron 환경에서 앱 버전 가져오기
+    if (isElectron() && window.electronAPI?.getAppVersion) {
+      window.electronAPI.getAppVersion().then(version => {
+        setAppVersion(version)
+      })
+    }
   }, [])
 
   return (
@@ -64,6 +73,14 @@ export function Header({ onMenuClick, onSettingsClick, onEditClick }: HeaderProp
       >
         <Menu className="h-4 w-4" />
       </button>
+
+      {/* 앱 이름 및 버전 - Electron에서만 표시 */}
+      {appVersion && (
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          <span className="font-semibold text-foreground">Call Agent</span>
+          <span>v{appVersion}</span>
+        </div>
+      )}
 
       {/* 지역 선택 - 드래그 불가 */}
       <div className="flex-1" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>

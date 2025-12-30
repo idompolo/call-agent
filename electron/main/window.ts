@@ -1,17 +1,98 @@
-import { app, BrowserWindow, shell } from 'electron';
+import { app, BrowserWindow, shell, screen } from 'electron';
 import path from 'path';
+import fs from 'fs';
 
 const isDev = !app.isPackaged;
+
+// 윈도우 상태 저장용
+interface WindowState {
+  x?: number;
+  y?: number;
+  width: number;
+  height: number;
+  isMaximized?: boolean;
+}
+
+const defaultState: WindowState = {
+  width: 1600,
+  height: 1000,
+};
+
+// 윈도우 상태 파일 경로
+const stateFilePath = path.join(app.getPath('userData'), 'window-state.json');
+
+function loadWindowState(): WindowState {
+  try {
+    if (fs.existsSync(stateFilePath)) {
+      const data = fs.readFileSync(stateFilePath, 'utf-8');
+      const state = JSON.parse(data) as WindowState;
+
+      // 저장된 위치가 현재 디스플레이 범위 내에 있는지 확인
+      if (state.x !== undefined && state.y !== undefined) {
+        const displays = screen.getAllDisplays();
+        const isVisible = displays.some(display => {
+          const { x, y, width, height } = display.bounds;
+          return (
+            state.x! >= x &&
+            state.x! < x + width &&
+            state.y! >= y &&
+            state.y! < y + height
+          );
+        });
+
+        // 화면 밖이면 위치 초기화
+        if (!isVisible) {
+          delete state.x;
+          delete state.y;
+        }
+      }
+
+      return { ...defaultState, ...state };
+    }
+  } catch (error) {
+    console.error('[Window] Failed to load window state:', error);
+  }
+  return defaultState;
+}
+
+function saveWindowState(window: BrowserWindow): void {
+  try {
+    const bounds = window.getBounds();
+    const isMaximized = window.isMaximized();
+
+    const state: WindowState = {
+      x: bounds.x,
+      y: bounds.y,
+      width: bounds.width,
+      height: bounds.height,
+      isMaximized,
+    };
+
+    fs.writeFileSync(stateFilePath, JSON.stringify(state, null, 2));
+    console.log('[Window] Window state saved:', state);
+  } catch (error) {
+    console.error('[Window] Failed to save window state:', error);
+  }
+}
+
+// 타이틀에 버전 포함
+const appVersion = app.getVersion();
+const appTitle = `FTNH Call Agent v${appVersion}`;
 
 export function createMainWindow(): BrowserWindow {
   const appPath = app.getAppPath();
 
+  // 저장된 윈도우 상태 불러오기
+  const savedState = loadWindowState();
+
   const mainWindow = new BrowserWindow({
-    width: 1600,
-    height: 1000,
+    x: savedState.x,
+    y: savedState.y,
+    width: savedState.width,
+    height: savedState.height,
     minWidth: 1200,
     minHeight: 800,
-    title: 'FTNH Call Agent',
+    title: appTitle,
     icon: path.join(appPath, 'out/icon.png'),
     webPreferences: {
       preload: path.join(appPath, 'dist-electron/preload/index.js'),
@@ -43,6 +124,18 @@ export function createMainWindow(): BrowserWindow {
   if (process.platform !== 'darwin') {
     mainWindow.setMenu(null);
   }
+
+  // 최대화 상태였으면 복원
+  if (savedState.isMaximized) {
+    mainWindow.maximize();
+  }
+
+  // 윈도우 상태 저장 이벤트 (닫히기 전에 저장)
+  mainWindow.on('close', () => {
+    if (!mainWindow.isMinimized()) {
+      saveWindowState(mainWindow);
+    }
+  });
 
   // Load the app
   if (isDev) {

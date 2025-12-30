@@ -55,3 +55,6 @@ next-env.d.ts
 # Electron build outputs (large binary files)
 release/
 dist-electron/
+
+# Secrets
+scripts/setup-github-token.sh

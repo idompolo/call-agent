@@ -52,6 +52,15 @@ export interface ElectronAPI {
   minimizeWindow: () => void;
   maximizeWindow: () => void;
   closeWindow: () => void;
+
+  // ============================================
+  // Auto Updater
+  // ============================================
+  onUpdateStatus: (callback: (status: UpdateStatus) => void) => CleanupFn;
+  checkForUpdates: () => Promise<{ updateAvailable: boolean; version?: string }>;
+  downloadUpdate: () => Promise<{ success: boolean; error?: string }>;
+  installUpdate: () => Promise<void>;
+  getAppVersion: () => Promise<string>;
 }
 
 // ============================================
@@ -138,6 +147,25 @@ export interface ConnectionStatus {
   connected: boolean;
   reconnecting?: boolean;
   lastConnected?: number;
+  error?: string;
+}
+
+// ============================================
+// Auto Updater Types
+// ============================================
+export interface UpdateStatus {
+  status: 'checking' | 'available' | 'not-available' | 'downloading' | 'downloaded' | 'error';
+  info?: {
+    version: string;
+    releaseDate?: string;
+    releaseNotes?: string;
+  };
+  progress?: {
+    bytesPerSecond: number;
+    percent: number;
+    transferred: number;
+    total: number;
+  };
   error?: string;
 }
 

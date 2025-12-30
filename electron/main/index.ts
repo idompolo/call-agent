@@ -35,6 +35,7 @@ if (process.platform === 'win32') {
 import { createMainWindow, setupAppLifecycle } from './window';
 import { MQTTManager } from './mqtt';
 import { setupIPCHandlers, removeIPCHandlers } from './ipc';
+import { initAutoUpdater, cleanupUpdaterIPC } from './updater';
 
 // Main window reference
 let mainWindow: BrowserWindow | null = null;
@@ -85,6 +86,11 @@ async function initialize(): Promise<void> {
   // Setup IPC handlers
   setupIPCHandlers(mqttManager, () => mainWindow);
 
+  // Initialize auto updater (production only)
+  if (!process.env.NODE_ENV || process.env.NODE_ENV === 'production') {
+    initAutoUpdater(mainWindow);
+  }
+
   // MQTT 연결은 Renderer에서 user 로그인 후 connectMQTT() 호출 시 수행됨
   // 자동 연결 제거 - Renderer에서 IPC를 통해 연결 요청
   console.log('[Main] MQTT Manager initialized, waiting for connection request from renderer');
@@ -104,6 +110,7 @@ async function initialize(): Promise<void> {
 function cleanup(): void {
   console.log('[Main] Cleaning up...');
   removeIPCHandlers();
+  cleanupUpdaterIPC();
   mqttManager.cleanup(); // 완전한 리소스 정리
 }
 

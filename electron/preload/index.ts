@@ -153,6 +153,30 @@ contextBridge.exposeInMainWorld('electronAPI', {
   closeWindow: (): void => {
     ipcRenderer.send('window:close');
   },
+
+  // ============================================
+  // Auto Updater
+  // ============================================
+
+  onUpdateStatus: (callback: (status: unknown) => void): CleanupFn => {
+    return createEventHandler('update-status', callback);
+  },
+
+  checkForUpdates: (): Promise<unknown> => {
+    return ipcRenderer.invoke('updater:check');
+  },
+
+  downloadUpdate: (): Promise<unknown> => {
+    return ipcRenderer.invoke('updater:download');
+  },
+
+  installUpdate: (): Promise<void> => {
+    return ipcRenderer.invoke('updater:install');
+  },
+
+  getAppVersion: (): Promise<string> => {
+    return ipcRenderer.invoke('updater:get-version');
+  },
 });
 
 console.log('[Preload] Context bridge exposed');

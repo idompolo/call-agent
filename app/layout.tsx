@@ -3,6 +3,7 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { QueryProvider } from "@/components/query-provider"
 import { ActionServiceInitializer } from "@/components/action-service-initializer"
+import { UpdateBanner } from "@/components/update-banner"
 
 export const metadata: Metadata = {
   title: "택시 관제 시스템",
@@ -26,6 +27,7 @@ export default function RootLayout({
           <QueryProvider>
             <ActionServiceInitializer>
               {children}
+              <UpdateBanner />
             </ActionServiceInitializer>
           </QueryProvider>
         </ThemeProvider>

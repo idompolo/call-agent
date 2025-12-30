@@ -93,7 +93,7 @@ async function initialize(): Promise<void> {
 
   // MQTT 연결은 Renderer에서 user 로그인 후 connectMQTT() 호출 시 수행됨
   // 자동 연결 제거 - Renderer에서 IPC를 통해 연결 요청
-  console.log('[Main] MQTT Manager initialized, waiting for connection request from renderer');
+  console.log('[Main] MQTT Manager initialized, waiting for connection request from renderer ');
 
   // Handle window close
   mainWindow.on('closed', () => {

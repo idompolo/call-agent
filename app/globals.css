@@ -34,6 +34,21 @@
     -webkit-text-size-adjust: 100%;
     -ms-text-size-adjust: 100%;
   }
+
+  /* Windows 폰트 렌더링 최적화 */
+  @supports (-ms-ime-align: auto) {
+    html {
+      /* Windows에서 Segoe UI 우선 사용 (ClearType 최적화) */
+      font-family: 'Pretendard Variable', 'Pretendard', 'Segoe UI', 'Malgun Gothic', '맑은 고딕', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+  }
+
+  /* 크로스 플랫폼 폰트 스무딩 강화 */
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
   
   :root {
     --background: 0 0% 100%;

@@ -22,9 +22,27 @@ export function createMainWindow(): BrowserWindow {
     // Professional dispatcher app styling
     backgroundColor: '#0f172a', // Slate-900
     show: true, // Show immediately for debugging
-    titleBarStyle: 'hiddenInset',
-    trafficLightPosition: { x: 15, y: 15 },
+    // macOS: 타이틀바 숨기기
+    ...(process.platform === 'darwin' && {
+      titleBarStyle: 'hiddenInset' as const,
+      trafficLightPosition: { x: 15, y: 15 },
+    }),
+    // Windows/Linux: 커스텀 타이틀바
+    ...(process.platform !== 'darwin' && {
+      autoHideMenuBar: true,
+      titleBarStyle: 'hidden' as const,
+      titleBarOverlay: {
+        color: '#1e293b', // 타이틀바 배경색 (Slate-800)
+        symbolColor: '#e2e8f0', // 버튼 아이콘 색상 (Slate-200)
+        height: 32,
+      },
+    }),
   });
+
+  // Windows/Linux: 메뉴바 완전 제거
+  if (process.platform !== 'darwin') {
+    mainWindow.setMenu(null);
+  }
 
   // Load the app
   if (isDev) {

@@ -11,7 +11,7 @@
     "electron:dev": "concurrently \"next dev\" \"wait-on http://localhost:3000 && tsc -p electron/tsconfig.json && electron .\"",
     "electron:build": "next build && tsc -p electron/tsconfig.json && electron-builder",
     "electron:build:mac": "next build && tsc -p electron/tsconfig.json && electron-builder --mac",
-    "electron:build:win": "next build && tsc -p electron/tsconfig.json && electron-builder --win",
+    "electron:build:win": "next build && tsc -p electron/tsconfig.json && electron-builder --win --x64",
     "electron:build:linux": "next build && tsc -p electron/tsconfig.json && electron-builder --linux"
   },
   "build": {

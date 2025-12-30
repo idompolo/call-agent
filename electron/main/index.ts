@@ -21,6 +21,16 @@ app.commandLine.appendSwitch('enable-accelerated-2d-canvas');
 // 폰트 서브픽셀 포지셔닝
 app.commandLine.appendSwitch('enable-font-antialiasing');
 
+// Windows 전용 폰트 렌더링 최적화
+if (process.platform === 'win32') {
+  // DirectWrite 폰트 렌더링 강제 (Windows ClearType 개선)
+  app.commandLine.appendSwitch('enable-direct-write', 'true');
+  // 서브픽셀 렌더링 품질 향상
+  app.commandLine.appendSwitch('enable-features', 'DirectWriteFontProxyRendering');
+  // 폰트 힌팅 개선
+  app.commandLine.appendSwitch('font-render-hinting', 'medium');
+}
+
 // 플래그 설정 후 나머지 모듈 import
 import { createMainWindow, setupAppLifecycle } from './window';
 import { MQTTManager } from './mqtt';

@@ -18,6 +18,7 @@ const ChatPanelFlutterLayout = lazy(() => import('@/components/chat-panel/ChatPa
 const MessageTablePanel = lazy(() => import('@/components/chat-panel/MessageTablePanel').then(m => ({ default: m.MessageTablePanel })))
 import { initializationService } from '@/services/initialization-service'
 import { LoginDialog } from '@/components/login-dialog'
+import { WindowsTitlebar } from '@/components/windows-titlebar'
 
 export default function DashboardPage() {
   const { user, isAuthenticated, isInitialized, isInitializing } = useAuthStore()
@@ -95,7 +96,11 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex h-screen bg-background pt-0.5">
+    <div className="flex flex-col h-screen bg-background">
+      {/* Windows 타이틀바 (Windows Electron에서만 표시) */}
+      <WindowsTitlebar />
+
+      <div className="flex flex-1 min-h-0">
       {showSideMenu && (
         <Suspense fallback={<div className="w-64 bg-gray-100 dark:bg-gray-800 animate-pulse" />}>
           <SideMenu onClose={() => setShowSideMenu(false)} />
@@ -171,10 +176,11 @@ export default function DashboardPage() {
       )}
 
       {/* Edit Panel */}
-      <EditPanel 
-        isOpen={showEditPanel} 
-        onClose={() => setShowEditPanel(false)} 
+      <EditPanel
+        isOpen={showEditPanel}
+        onClose={() => setShowEditPanel(false)}
       />
+      </div>
     </div>
   )
 }

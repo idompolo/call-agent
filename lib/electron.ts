@@ -37,3 +37,20 @@ export function isMacOS(): boolean {
 export function isElectronMac(): boolean {
   return isElectron() && isMacOS();
 }
+
+/**
+ * Check if running on Windows
+ */
+export function isWindows(): boolean {
+  if (typeof window !== 'undefined' && typeof navigator !== 'undefined') {
+    return navigator.platform.toLowerCase().includes('win');
+  }
+  return false;
+}
+
+/**
+ * Check if running in Electron on Windows (for custom titlebar)
+ */
+export function isElectronWindows(): boolean {
+  return isElectron() && isWindows();
+}

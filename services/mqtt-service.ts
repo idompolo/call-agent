@@ -5,16 +5,9 @@ import { normalizeAgent } from '@/utils/order-formatter'
 type QoS = 0 | 1 | 2
 type MessageCallback = (message: string) => void
 
-interface BufferedMessage {
-  topic: string
-  message: string
-  timestamp: number
-}
-
 // MQTT 서비스 설정 상수
 const MQTT_CONFIG = {
-  MAX_BUFFER_SIZE: 1000,        // 최대 버퍼 크기
-  BUFFER_TTL_MS: 30000,          // 버퍼 TTL (30초)
+  MAX_BUFFER_SIZE: 1000,        // 최대 오프라인 큐 크기
   DEFAULT_QOS: 1,                // 기본 QoS 레벨
   RECONNECT_BASE_DELAY: 1000,    // 초기 재연결 지연 (1초)
   RECONNECT_MAX_DELAY: 60000,    // 최대 재연결 지연 (60초)
@@ -47,14 +40,13 @@ class MqttService {
   private connectionStartTime: number = 0
   private connectionChangeCallbacks: Set<(connected: boolean) => void> = new Set()
   
-  // 버퍼링 시스템
-  private messageBuffer: BufferedMessage[] = []
-  private isInitialDataLoaded = false
-  
   // 구독 상태 추적
   private subscribedTopics: Set<string> = new Set()
   private pendingSubscriptions: Map<string, number> = new Map()
-  
+  private requiredTopics: string[] = [] // 필수 토픽 목록
+  private subscriptionResolvers: Array<{ resolve: () => void; topics: string[] }> = [] // 구독 완료 대기 콜백
+  private connectionResolvers: Array<() => void> = [] // 연결 완료 대기 콜백
+
   // 오프라인 큐
   private offlineQueue: Array<{ topic: string; message: string; qos: QoS }> = []
 
@@ -96,9 +88,12 @@ class MqttService {
       this.isConnecting = false
       this.connectionAttempts = 0
       this.lastPingTime = Date.now()
-      
+
       // Notify connection change callbacks
       this.notifyConnectionChange(true)
+
+      // 연결 완료 대기 중인 resolver들 호출
+      this.resolveConnectionWaiters()
       
       // 기존 구독 복구
       this.restoreSubscriptions()
@@ -123,13 +118,8 @@ class MqttService {
     this.client.on('message', (topic: string, payload: Buffer) => {
       const message = payload.toString('utf-8')
       this.lastPingTime = Date.now() // 활동 시간 업데이트
-      
-      // 초기 데이터가 로드되지 않았으면 버퍼에 저장
-      if (!this.isInitialDataLoaded) {
-        this.addToBuffer(topic, message)
-        return
-      }
-      
+
+      // 메시지 핸들러 호출 (버퍼링은 use-mqtt.ts에서 처리)
       const handler = this.messageHandlers.get(topic)
       if (handler) {
         try {
@@ -249,6 +239,9 @@ class MqttService {
         console.log(`[MQTT] Successfully subscribed to ${topic}`)
         this.subscribedTopics.add(topic)
         this.pendingSubscriptions.delete(topic)
+
+        // 구독 완료 대기 중인 resolver들 체크
+        this.checkSubscriptionResolvers()
       }
     })
   }
@@ -330,49 +323,6 @@ class MqttService {
     })
   }
 
-  // 초기 데이터 로드 완료 시 호출
-  onInitialDataLoaded(): void {
-    this.isInitialDataLoaded = true
-    
-    // 버퍼에 저장된 메시지 처리
-    const bufferedMessages = [...this.messageBuffer]
-    this.messageBuffer = []
-    
-    // 타임스탬프 순으로 정렬하여 처리
-    bufferedMessages
-      .sort((a, b) => a.timestamp - b.timestamp)
-      .forEach(({ topic, message }) => {
-        const handler = this.messageHandlers.get(topic)
-        if (handler) {
-          handler(message)
-        }
-      })
-  }
-  
-  // 버퍼에 메시지 추가 (크기 및 TTL 제한 포함)
-  private addToBuffer(topic: string, message: string): void {
-    const now = Date.now()
-    
-    // 오래된 메시지 제거
-    this.messageBuffer = this.messageBuffer.filter(
-      msg => now - msg.timestamp < MQTT_CONFIG.BUFFER_TTL_MS
-    )
-    
-    // 버퍼 크기 제한 검사
-    if (this.messageBuffer.length >= MQTT_CONFIG.MAX_BUFFER_SIZE) {
-      console.warn(`[MQTT] 버퍼 크기 초과, 가장 오래된 메시지 제거`)
-      this.messageBuffer.shift() // 가장 오래된 메시지 제거
-    }
-    
-    // Add message to buffer
-    this.messageBuffer.push({
-      topic,
-      message,
-      timestamp: now
-    })
-  }
-
-
   // 연결 상태 모니터링 메서드 추가
   private startHealthCheck(): void {
     this.stopHealthCheck() // 기존 타이머 정리
@@ -400,6 +350,131 @@ class MqttService {
       clearInterval(this.healthCheckTimer)
       this.healthCheckTimer = null
     }
+  }
+
+  // ============================================
+  // 동기화 관련 메서드 (Phase 2-A)
+  // ============================================
+
+  /**
+   * 연결 완료까지 대기
+   * 이미 연결되어 있으면 즉시 resolve
+   */
+  waitForConnected(): Promise<void> {
+    if (this.isConnected) {
+      return Promise.resolve()
+    }
+
+    return new Promise((resolve) => {
+      this.connectionResolvers.push(resolve)
+    })
+  }
+
+  /**
+   * 특정 토픽들의 구독 완료까지 대기
+   * @param topics 대기할 토픽 목록. 생략 시 requiredTopics 사용
+   * @param timeoutMs 타임아웃 (기본 10초)
+   */
+  waitForSubscribed(topics?: string[], timeoutMs: number = 10000): Promise<void> {
+    const targetTopics = topics || this.requiredTopics
+
+    // 이미 모두 구독되어 있으면 즉시 resolve
+    if (this.areTopicsSubscribed(targetTopics)) {
+      console.log(`[MQTT] All topics already subscribed`)
+      return Promise.resolve()
+    }
+
+    return new Promise((resolve, reject) => {
+      const timeoutId = setTimeout(() => {
+        // 타임아웃 시 resolver 제거
+        this.subscriptionResolvers = this.subscriptionResolvers.filter(
+          r => r.resolve !== resolve
+        )
+
+        const notSubscribed = targetTopics.filter(t => !this.subscribedTopics.has(t))
+        console.warn(`[MQTT] Subscription timeout. Not subscribed: ${notSubscribed.join(', ')}`)
+
+        // 타임아웃 시에도 진행 (실패 시 처리는 호출자가)
+        resolve()
+      }, timeoutMs)
+
+      this.subscriptionResolvers.push({
+        resolve: () => {
+          clearTimeout(timeoutId)
+          resolve()
+        },
+        topics: targetTopics
+      })
+
+      // 혹시 이미 구독되어 있을 수 있으니 체크
+      this.checkSubscriptionResolvers()
+    })
+  }
+
+  /**
+   * 필수 토픽 목록 설정
+   */
+  setRequiredTopics(topics: string[]): void {
+    this.requiredTopics = [...topics]
+    console.log(`[MQTT] Required topics set: ${topics.join(', ')}`)
+  }
+
+  /**
+   * 모든 필수 토픽이 구독되었는지 확인
+   */
+  isAllSubscribed(): boolean {
+    return this.areTopicsSubscribed(this.requiredTopics)
+  }
+
+  /**
+   * 특정 토픽들이 모두 구독되었는지 확인
+   */
+  private areTopicsSubscribed(topics: string[]): boolean {
+    if (topics.length === 0) return true
+    return topics.every(topic => this.subscribedTopics.has(topic))
+  }
+
+  /**
+   * 구독 완료 대기 resolver들 체크 및 호출
+   */
+  private checkSubscriptionResolvers(): void {
+    const resolvedIndexes: number[] = []
+
+    this.subscriptionResolvers.forEach((item, index) => {
+      if (this.areTopicsSubscribed(item.topics)) {
+        console.log(`[MQTT] Subscription resolver fulfilled for topics: ${item.topics.join(', ')}`)
+        item.resolve()
+        resolvedIndexes.push(index)
+      }
+    })
+
+    // 처리된 resolver들 제거 (역순으로 제거해야 인덱스 유지)
+    for (let i = resolvedIndexes.length - 1; i >= 0; i--) {
+      this.subscriptionResolvers.splice(resolvedIndexes[i], 1)
+    }
+  }
+
+  /**
+   * 연결 완료 대기 resolver들 호출
+   */
+  private resolveConnectionWaiters(): void {
+    const resolvers = [...this.connectionResolvers]
+    this.connectionResolvers = []
+
+    resolvers.forEach(resolve => {
+      try {
+        resolve()
+      } catch (error) {
+        console.error('[MQTT] Error in connection resolver:', error)
+      }
+    })
+  }
+
+  /**
+   * 연결 상태 확인
+   */
+  getConnectionStatus(): boolean {
+    return this.isConnected
   }
 
   disconnect(): void {
@@ -435,8 +510,6 @@ class MqttService {
     }
     
     this.messageHandlers.clear()
-    this.messageBuffer = []
-    this.isInitialDataLoaded = false
     this.userId = ''
     
     console.log('[MQTT] Disconnected successfully')

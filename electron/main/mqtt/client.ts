@@ -139,12 +139,12 @@ export class MQTTManager {
    * @param configOrUserId - MQTTConfig 객체 또는 userId 문자열
    * @param events - 선택적 이벤트 핸들러
    */
-  connect(configOrUserId: MQTTConfig | string, events?: MQTTManagerEvents): void {
+  async connect(configOrUserId: MQTTConfig | string, events?: MQTTManagerEvents): Promise<void> {
     // userId로 호출된 경우, 기존 연결이 있으면 해제 후 재연결
     if (typeof configOrUserId === 'string') {
       if (this.client?.connected || this.isConnecting) {
         console.log('[MQTT] Disconnecting existing connection before reconnecting with userId:', configOrUserId);
-        this.disconnect();
+        await this.disconnectAsync();
       }
     } else if (this.isConnecting || this.client?.connected) {
       console.log('[MQTT] Already connected or connecting');
@@ -725,7 +725,7 @@ export class MQTTManager {
   // ================================
 
   /**
-   * 연결 해제
+   * 연결 해제 (동기)
    * batcher는 mainWindow 참조를 유지하여 재연결 시 사용 가능하도록 함
    */
   disconnect(): void {
@@ -737,6 +737,57 @@ export class MQTTManager {
       this.client.end();
       this.client = null;
     }
+    this.isConnecting = false;
+  }
+
+  /**
+   * 연결 해제 (비동기) - 연결이 완전히 종료될 때까지 대기
+   * 새로고침 시 disconnect → connect 사이의 race condition 방지
+   */
+  disconnectAsync(): Promise<void> {
+    return new Promise((resolve) => {
+      this.batcher.flushAll();
+
+      if (!this.client) {
+        this.isConnecting = false;
+        resolve();
+        return;
+      }
+
+      const client = this.client;
+
+      // 연결 종료 이벤트 대기
+      const onClose = () => {
+        client.removeListener('close', onClose);
+        this.client = null;
+        this.isConnecting = false;
+        console.log('[MQTT] Disconnect completed (async)');
+        resolve();
+      };
+
+      client.once('close', onClose);
+
+      // end() 호출 - force: true로 즉시 종료
+      client.end(true, {}, () => {
+        // 콜백이 호출되면 close 이벤트가 발생하지 않을 수 있으므로 직접 resolve
+        client.removeListener('close', onClose);
+        this.client = null;
+        this.isConnecting = false;
+        console.log('[MQTT] Disconnect completed (callback)');
+        resolve();
+      });
+
+      // 타임아웃: 3초 후에도 종료되지 않으면 강제 resolve
+      setTimeout(() => {
+        client.removeListener('close', onClose);
+        if (this.client === client) {
+          this.client = null;
+        }
+        this.isConnecting = false;
+        console.log('[MQTT] Disconnect timeout, forcing resolve');
+        resolve();
+      }, 3000);
+    });
   }
 
   /**

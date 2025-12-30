@@ -32,14 +32,27 @@ export default function DashboardPage() {
     setIsElectronMacApp(isElectronMac())
   }, [])
 
+  // 페이지 마운트 시 초기화 상태 리셋 (새로고침 대응)
+  // 이 useEffect는 컴포넌트 마운트 시 한 번만 실행됨
+  useEffect(() => {
+    // 새로고침 시 isInitialized가 true로 남아있을 수 있으므로 리셋
+    // 이렇게 하면 MQTT 버퍼링이 다시 활성화됨
+    const { isInitialized: currentlyInitialized, setInitialized, setInitializing } = useAuthStore.getState()
+    if (currentlyInitialized) {
+      console.log('[Dashboard] Resetting initialization state on mount (page refresh detected)')
+      setInitialized(false)
+      setInitializing(false)
+    }
+  }, []) // 빈 의존성 배열 = 마운트 시 한 번만 실행
+
   // Handle initialization flow
   useEffect(() => {
     async function handleInitialization() {
       // Only initialize if user is authenticated AND not already initialized
       if (user && user.id && isAuthenticated && !isInitialized && !isInitializing) {
-        console.log('Starting initialization...')
+        console.log('[Dashboard] Starting initialization...')
         const result = await initializationService.initialize()
-        
+
         if (!result.success) {
           setInitError(result.error || 'Failed to initialize')
         }

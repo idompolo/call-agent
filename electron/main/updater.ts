@@ -86,7 +86,7 @@ export function initAutoUpdater(win: BrowserWindow): void {
   setInterval(() => {
     console.log('[Updater] Periodic update check...');
     checkForUpdates();
-  }, 10 * 1000); // 10 seconds
+  }, 10 * 60 * 1000); // 10 minutes
 }
 
 /**

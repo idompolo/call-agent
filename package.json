@@ -16,7 +16,7 @@
   },
   "build": {
     "appId": "com.ftnh.callagent",
-    "productName": "Call Agent",
+    "productName": "FTNH Call Agent",
     "directories": {
       "output": "release"
     },

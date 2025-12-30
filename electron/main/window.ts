@@ -11,7 +11,7 @@ export function createMainWindow(): BrowserWindow {
     height: 1000,
     minWidth: 1200,
     minHeight: 800,
-    title: 'Next-Gen Dispatcher',
+    title: 'FTNH Call Agent',
     icon: path.join(appPath, 'out/icon.png'),
     webPreferences: {
       preload: path.join(appPath, 'dist-electron/preload/index.js'),
@@ -29,11 +29,11 @@ export function createMainWindow(): BrowserWindow {
   // Load the app
   if (isDev) {
     mainWindow.loadURL('http://localhost:3000/dashboard');
-    mainWindow.webContents.openDevTools();
+    // DevTools: Cmd+Option+I (Mac) / Ctrl+Shift+I (Win) 로 수동 열기
+    // mainWindow.webContents.openDevTools();
   } else {
     // Use custom app:// protocol for production
     mainWindow.loadURL('app://localhost/dashboard');
-    mainWindow.webContents.openDevTools();
   }
 
   console.log('[Window] isDev:', isDev);

@@ -61,6 +61,7 @@ export interface ElectronAPI {
   downloadUpdate: () => Promise<{ success: boolean; error?: string }>;
   installUpdate: () => Promise<void>;
   getAppVersion: () => Promise<string>;
+  getReleaseNotes: () => Promise<{ releaseNotes: string; releaseDate: string } | null>;
 }
 
 // ============================================

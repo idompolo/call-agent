@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { QueryProvider } from "@/components/query-provider"
 import { ActionServiceInitializer } from "@/components/action-service-initializer"
 import { UpdateBanner } from "@/components/update-banner"
+import { WhatsNewModal } from "@/components/whats-new-modal"
 
 export const metadata: Metadata = {
   title: "택시 관제 시스템",
@@ -28,6 +29,7 @@ export default function RootLayout({
             <ActionServiceInitializer>
               {children}
               <UpdateBanner />
+              <WhatsNewModal />
             </ActionServiceInitializer>
           </QueryProvider>
         </ThemeProvider>

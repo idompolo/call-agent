@@ -177,6 +177,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getAppVersion: (): Promise<string> => {
     return ipcRenderer.invoke('updater:get-version');
   },
+
+  getReleaseNotes: (): Promise<{ releaseNotes: string; releaseDate: string } | null> => {
+    return ipcRenderer.invoke('updater:get-release-notes');
+  },
 });
 
 console.log('[Preload] Context bridge exposed');

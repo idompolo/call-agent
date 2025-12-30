@@ -1,9 +1,30 @@
 import { app, BrowserWindow, protocol, net } from 'electron';
+import path from 'path';
+import { pathToFileURL } from 'url';
+
+// ============================================
+// Text Rendering & GPU Optimization Flags
+// 주의: 반드시 다른 모듈 import 전에 설정해야 함
+// ============================================
+// LCD 서브픽셀 안티앨리어싱 활성화
+app.commandLine.appendSwitch('enable-lcd-text');
+// 색상 프로파일 강제 설정
+app.commandLine.appendSwitch('force-color-profile', 'srgb');
+// GPU 래스터라이제이션 활성화 (텍스트 렌더링 품질 향상)
+app.commandLine.appendSwitch('enable-gpu-rasterization');
+// Zero-copy 래스터라이저 활성화
+app.commandLine.appendSwitch('enable-zero-copy');
+// GPU 블록리스트 무시 (더 많은 GPU에서 하드웨어 가속 사용)
+app.commandLine.appendSwitch('ignore-gpu-blocklist');
+// 하드웨어 가속 활성화
+app.commandLine.appendSwitch('enable-accelerated-2d-canvas');
+// 폰트 서브픽셀 포지셔닝
+app.commandLine.appendSwitch('enable-font-antialiasing');
+
+// 플래그 설정 후 나머지 모듈 import
 import { createMainWindow, setupAppLifecycle } from './window';
 import { MQTTManager } from './mqtt';
 import { setupIPCHandlers, removeIPCHandlers } from './ipc';
-import path from 'path';
-import { pathToFileURL } from 'url';
 
 // Main window reference
 let mainWindow: BrowserWindow | null = null;

@@ -93,6 +93,10 @@
 @layer base {
   * {
     @apply border-border;
+    /* 모든 요소에 폰트 스무딩 적용 */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
   body {
     @apply bg-background text-foreground;

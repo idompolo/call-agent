@@ -241,3 +241,15 @@ export const useOrderStore = create<OrderState>((set, get) => ({
   }),
   getOrderById: (orderId) => get().ordersMap.get(orderId),
 }))
+
+// HMR 시 스토어 상태 보존 (개발 모드 전용)
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+  const key = '__ZUSTAND_ORDER_STORE__'
+  const win = window as any
+  if (win[key]) {
+    // 기존 스토어 상태 복원
+    const prevState = win[key].getState()
+    useOrderStore.setState(prevState)
+  }
+  win[key] = useOrderStore
+}

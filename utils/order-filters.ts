@@ -44,81 +44,81 @@ const isReserve = (order: Order): boolean => {
 // Filter functions for each filter type - exact match with Flutter implementation
 export const filterFunctions: Record<OrderFilterType, (order: Order) => boolean> = {
   [OrderFilterType.All]: () => true,
-  
+
   // Filter1: 손취>첵콜>poi없는접수>배차후취소
   [OrderFilterType.Filter1]: (order: Order) => {
     if (isReserve(order)) return false
-    
-    const sonc = !isCancel(order) && !isBoarding(order) && (order.actions?.some(e => e.name === '손취') || false)
+
+    const sonc = !isBoarding(order) && (order.actions?.some(e => e.name === '손취') || false)
     const c = isCheckCall(order) && !isBoarding(order) && !isCancel(order)
     const na = (!order.poiName || order.poiName.length === 0) && !isAccept(order) && !isCancel(order)
-    const ac = isAccept(order) && isCancel(order)
-    
+    const ac = !isCancel(order) && isAccept(order) && isCancel(order)
+
     return sonc || c || na || ac
   },
-  
+
   // Filter2: 손취>첵콜>모든접수>배차후취소
   [OrderFilterType.Filter2]: (order: Order) => {
     if (isReserve(order)) return false
-    
-    const sonc = !isCancel(order) && !isBoarding(order) && (order.actions?.some(e => e.name === '손취') || false)
+
+    const sonc = !isBoarding(order) && (order.actions?.some(e => e.name === '손취') || false)
     const c = isCheckCall(order) && !isBoarding(order) && !isCancel(order)
     const a = !isAccept(order) && !isCancel(order)
-    const ac = isAccept(order) && isCancel(order)
-    
+    const ac = !isCancel(order) && isAccept(order) && isCancel(order)
+
     return sonc || c || a || ac
   },
-  
+
   // Filter3: 손취>첵콜>poi없는접수>미탑승
   [OrderFilterType.Filter3]: (order: Order) => {
     if (isReserve(order)) return false
-    
-    const sonc = !isCancel(order) && !isBoarding(order) && (order.actions?.some(e => e.name === '손취') || false)
+
+    const sonc = !isBoarding(order) && (order.actions?.some(e => e.name === '손취') || false)
     const c = isCheckCall(order) && !isBoarding(order) && !isCancel(order)
     const na = (!order.poiName || order.poiName.length === 0) && !isAccept(order) && !isCancel(order)
-    const ac = isAccept(order) && !isBoarding(order)
-    
+    const ac = !isCancel(order) && isAccept(order) && !isBoarding(order)
+
     return sonc || c || na || ac
   },
-  
+
   // Filter4: 손취>첵콜>모든접수>미탑승
   [OrderFilterType.Filter4]: (order: Order) => {
     if (isReserve(order)) return false
-    
-    const sonc = !isCancel(order) && !isBoarding(order) && (order.actions?.some(e => e.name === '손취') || false)
+
+    const sonc = !isBoarding(order) && (order.actions?.some(e => e.name === '손취') || false)
     const c = isCheckCall(order) && !isBoarding(order) && !isCancel(order)
     const a = !isAccept(order) && !isCancel(order)
-    const ac = isAccept(order) && !isBoarding(order)
-    
+    const ac = !isCancel(order) && isAccept(order) && !isBoarding(order)
+
     return sonc || c || a || ac
   },
-  
+
   // Filter5: 손취>첵콜>모든접수>배차(탑승, 배차후 취소건 제외)
   [OrderFilterType.Filter5]: (order: Order) => {
     if (isReserve(order)) return false
-    
-    const sonc = !isCancel(order) && !isBoarding(order) && (order.actions?.some(e => e.name === '손취') || false)
+
+    const sonc = !isBoarding(order) && (order.actions?.some(e => e.name === '손취') || false)
     const c = isCheckCall(order) && !isBoarding(order) && !isCancel(order)
     const a = !isAccept(order) && !isCancel(order)
-    const ac = isAccept(order) && !isBoarding(order)
+    const ac = !isCancel(order) && isAccept(order) && !isBoarding(order)
     const cc = !isAccept(order) && isCancel(order)
-    
+
     return sonc || c || a || ac || cc
   },
-  
+
   // Filter6: 접수만
   [OrderFilterType.Filter6]: (order: Order) => {
     if (isReserve(order)) return false
     const a = !isAccept(order) && !isCancel(order)
     return a
   },
-  
+
   // Filter7: 예약만 (취소포함)
   [OrderFilterType.Filter7]: (order: Order) => {
     if (!isReserve(order)) return false
     return true
   },
-  
+
   // Filter8: 예약만 (취소제외)
   [OrderFilterType.Filter8]: (order: Order) => {
     if (!isReserve(order)) return false
@@ -135,80 +135,12 @@ const sortKeyGen = (priority: number, date: Date | undefined): number => {
   return parseInt(`${priority}${timestamp}`)
 }
 
-// Sorting function for Filter1-5 based on Flutter implementation
-export const getFilterSortValue = (order: Order, filterType: OrderFilterType): number => {
-  // Higher values = higher priority (will be sorted first)
-  
-  if (filterType === OrderFilterType.Filter1) {
-    // sortCal: 손취(4) > 첵콜(3) > POI없는접수(2) > 배차후취소(1)
-    if (!isCancel(order) && !isBoarding(order) && isManualCancel(order)) {
-      return sortKeyGen(4, order.addAt)
-    }
-    if (isCheckCall(order) && !isBoarding(order) && !isCancel(order)) {
-      const checkCallAction = order.actions?.find(a => a.name === '첵콜')
-      return sortKeyGen(3, checkCallAction?.at)
-    }
-    if ((!order.poiName || order.poiName.length === 0) && !isAccept(order) && !isCancel(order)) {
-      return sortKeyGen(2, order.addAt)
-    }
-    if (isAccept(order) && isCancel(order)) {
-      return sortKeyGen(1, order.addAt)
-    }
-  } else if (filterType === OrderFilterType.Filter2) {
-    // sortCal2: 손취(4) > 첵콜(3) > 모든접수(2) > 배차후취소(1)
-    if (!isCancel(order) && !isBoarding(order) && isManualCancel(order)) {
-      return sortKeyGen(4, order.addAt)
-    }
-    if (isCheckCall(order) && !isBoarding(order) && !isCancel(order)) {
-      const checkCallAction = order.actions?.find(a => a.name === '첵콜')
-      return sortKeyGen(3, checkCallAction?.at)
-    }
-    if (!order.drvNo && !isCancel(order)) { // isAddOrder
-      return sortKeyGen(2, order.addAt)
-    }
-    if (isAccept(order) && isCancel(order)) {
-      return sortKeyGen(1, order.addAt)
-    }
-  } else if (filterType === OrderFilterType.Filter3) {
-    // sortCal3: 손취(4) > 첵콜(3) > POI없는접수(2) > 미탑승(1)
-    if (!isCancel(order) && !isBoarding(order) && isManualCancel(order)) {
-      return sortKeyGen(4, order.addAt)
-    }
-    if (isCheckCall(order) && !isBoarding(order) && !isCancel(order)) {
-      const checkCallAction = order.actions?.find(a => a.name === '첵콜')
-      return sortKeyGen(3, checkCallAction?.at)
-    }
-    if ((!order.poiName || order.poiName.length === 0) && !isAccept(order) && !isCancel(order)) {
-      return sortKeyGen(2, order.addAt)
-    }
-    if (isAccept(order) && !isBoarding(order) && !isCancel(order)) {
-      return sortKeyGen(1, order.addAt)
-    }
-  } else if (filterType === OrderFilterType.Filter4 || filterType === OrderFilterType.Filter5) {
-    // sortCal4: 손취(4) > 첵콜(3) > 모든접수(2) > 미탑승(1)
-    if (!isCancel(order) && !isBoarding(order) && isManualCancel(order)) {
-      return sortKeyGen(4, order.addAt)
-    }
-    if (isCheckCall(order) && !isBoarding(order) && !isCancel(order)) {
-      const checkCallAction = order.actions?.find(a => a.name === '첵콜')
-      return sortKeyGen(3, checkCallAction?.at)
-    }
-    if (!order.drvNo && !isCancel(order)) { // isAddOrder
-      return sortKeyGen(2, order.addAt)
-    }
-    if (isAccept(order) && !isBoarding(order) && !isCancel(order)) {
-      return sortKeyGen(1, order.addAt)
-    }
-  }
-  
-  return 0 // No specific sorting
-}
 
 // Apply filter and sorting to orders - exact match with Flutter implementation
 export const applyOrderFilter = (orders: Order[], filterType: OrderFilterType): Order[] => {
   const filterFn = filterFunctions[filterType]
   const filtered = orders.filter(filterFn)
-  
+
   // Apply sorting based on filter type - all ascending (oldest first)
   if (filterType === OrderFilterType.Filter1) {
     // 손취>첵콜>poi없는접수>배차후취소(F10)
@@ -253,25 +185,25 @@ export const applyOrderFilter = (orders: Order[], filterType: OrderFilterType): 
       return at - bt // Ascending order (oldest first)
     })
   }
-  
+
   // For all other filters (All, Filter6)
   if (filterType === OrderFilterType.All) {
     // For All filter: reservations first, then sort by time (oldest first)
     return filtered.sort((a, b) => {
       const aIsReserve = isReserve(a)
       const bIsReserve = isReserve(b)
-      
+
       // If one is reserve and the other isn't, reserve comes first
       if (aIsReserve && !bIsReserve) return -1
       if (!aIsReserve && bIsReserve) return 1
-      
+
       // If both are same type (both reserve or both not reserve), sort by time
       const bt = b.addAt?.getTime() || 0
       const at = a.addAt?.getTime() || 0
       return at - bt // Ascending order (oldest first)
     })
   }
-  
+
   // For Filter6 and any other filters, apply default sorting - oldest first
   return filtered.sort((a, b) => {
     const bt = b.addAt?.getTime() || 0
@@ -283,99 +215,99 @@ export const applyOrderFilter = (orders: Order[], filterType: OrderFilterType): 
 // Flutter sorting functions
 const getSortCal = (order: Order): number => {
   let bt = 0
-  
+
   // Priority 4: 손취
-  bt = isSonCancel(order) ? sortKeyGen(4, order.addAt) : 0
+  bt = isSonCancel(order) ? sortKeyGen(1, order.addAt) : 0
   if (bt === 0) {
     // Priority 3: 첵콜
-    bt = isCheckCallV(order) 
-      ? sortKeyGen(3, order.actions?.find(a => a.name === '첵콜')?.at) 
+    bt = isCheckCallV(order)
+      ? sortKeyGen(2, order.actions?.find(a => a.name === '첵콜')?.at)
       : 0
   }
   if (bt === 0) {
     // Priority 2: POI없는접수
-    bt = isNonAcceptCancelWithNotMatch(order) ? sortKeyGen(2, order.addAt) : 0
+    bt = isNonAcceptCancelWithNotMatch(order) ? sortKeyGen(3, order.addAt) : 0
   }
   if (bt === 0) {
     // Priority 1: 배차후취소
-    bt = isAcceptAfterCancel(order) ? sortKeyGen(1, order.addAt) : 0
+    bt = isAcceptAfterCancel(order) ? sortKeyGen(4, order.addAt) : 0
   }
-  
+
   return bt
 }
 
 const getSortCal2 = (order: Order): number => {
   let bt = 0
-  
+
   // Priority 4: 손취
-  bt = isSonCancel(order) ? sortKeyGen(4, order.addAt) : 0
+  bt = isSonCancel(order) ? sortKeyGen(1, order.addAt) : 0
   if (bt === 0) {
     // Priority 3: 첵콜
-    bt = isCheckCallV(order) 
-      ? sortKeyGen(3, order.actions?.find(a => a.name === '첵콜')?.at) 
+    bt = isCheckCallV(order)
+      ? sortKeyGen(2, order.actions?.find(a => a.name === '첵콜')?.at)
       : 0
   }
   if (bt === 0) {
     // Priority 2: 모든접수
-    bt = isAddOrder(order) ? sortKeyGen(2, order.addAt) : 0
+    bt = isAddOrder(order) ? sortKeyGen(3, order.addAt) : 0
   }
   if (bt === 0) {
     // Priority 1: 배차후취소
-    bt = isAcceptAfterCancel(order) ? sortKeyGen(1, order.addAt) : 0
+    bt = isAcceptAfterCancel(order) ? sortKeyGen(4, order.addAt) : 0
   }
-  
+
   return bt
 }
 
 const getSortCal3 = (order: Order): number => {
   let bt = 0
-  
+
   // Priority 4: 손취
-  bt = isSonCancel(order) ? sortKeyGen(4, order.addAt) : 0
+  bt = isSonCancel(order) ? sortKeyGen(1, order.addAt) : 0
   if (bt === 0) {
     // Priority 3: 첵콜
-    bt = isCheckCallV(order) 
-      ? sortKeyGen(3, order.actions?.find(a => a.name === '첵콜')?.at) 
+    bt = isCheckCallV(order)
+      ? sortKeyGen(2, order.actions?.find(a => a.name === '첵콜')?.at)
       : 0
   }
   if (bt === 0) {
     // Priority 2: POI없는접수
-    bt = isNonAcceptCancelWithNotMatch(order) ? sortKeyGen(2, order.addAt) : 0
+    bt = isNonAcceptCancelWithNotMatch(order) ? sortKeyGen(3, order.addAt) : 0
   }
   if (bt === 0) {
     // Priority 1: 미탑승
-    bt = isNoBoarding(order) ? sortKeyGen(1, order.addAt) : 0
+    bt = isNoBoarding(order) ? sortKeyGen(4, order.addAt) : 0
   }
-  
+
   return bt
 }
 
 const getSortCal4 = (order: Order): number => {
   let bt = 0
-  
+
   // Priority 4: 손취
-  bt = isSonCancel(order) ? sortKeyGen(4, order.addAt) : 0
+  bt = isSonCancel(order) ? sortKeyGen(1, order.addAt) : 0
   if (bt === 0) {
     // Priority 3: 첵콜
-    bt = isCheckCallV(order) 
-      ? sortKeyGen(3, order.actions?.find(a => a.name === '첵콜')?.at) 
+    bt = isCheckCallV(order)
+      ? sortKeyGen(2, order.actions?.find(a => a.name === '첵콜')?.at)
       : 0
   }
   if (bt === 0) {
     // Priority 2: 모든접수
-    bt = isAddOrder(order) ? sortKeyGen(2, order.addAt) : 0
+    bt = isAddOrder(order) ? sortKeyGen(3, order.addAt) : 0
   }
   if (bt === 0) {
     // Priority 1: 미탑승
-    bt = isNoBoarding(order) ? sortKeyGen(1, order.addAt) : 0
+    bt = isNoBoarding(order) ? sortKeyGen(4, order.addAt) : 0
   }
-  
+
   return bt
 }
 
 // Helper functions for sorting - exact match with Flutter
 const isSonCancel = (order: Order): boolean => {
-  return !isCancel(order) && (order.actions?.some(e => e.name === '손취') || false)
+  return (order.actions?.some(e => e.name === '손취') || false)
 }
 
 const isCheckCallV = (order: Order): boolean => {

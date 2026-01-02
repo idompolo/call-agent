@@ -38,8 +38,7 @@ const isAccept = (order: Order): boolean => {
 }
 
 const isReserve = (order: Order): boolean => {
-  // Flutter: order.notiTime != null
-  return order.notiTime != null
+  return order.reserveAt != null
 }
 
 // Filter functions for each filter type - exact match with Flutter implementation

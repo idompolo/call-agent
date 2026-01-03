@@ -53,11 +53,23 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-storage',
-      // 개발 환경에서는 persist 비활성화 - 아무것도 저장하지 않음
+      // sessionStorage 사용 - 브라우저/Electron 종료 시 자동 삭제
       storage: {
-        getItem: () => null,
-        setItem: () => {},
-        removeItem: () => {},
+        getItem: (name) => {
+          if (typeof window === 'undefined') return null
+          const item = sessionStorage.getItem(name)
+          return item ? JSON.parse(item) : null
+        },
+        setItem: (name, value) => {
+          if (typeof window !== 'undefined') {
+            sessionStorage.setItem(name, JSON.stringify(value))
+          }
+        },
+        removeItem: (name) => {
+          if (typeof window !== 'undefined') {
+            sessionStorage.removeItem(name)
+          }
+        },
       },
     }
   )

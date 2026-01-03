@@ -148,14 +148,16 @@ export function useMqtt() {
     }
 
     // 기존 구독 해제 (혹시 남아있을 경우)
+    // Note: preload의 activeHandlers Map이 채널별 중복을 자동으로 방지하지만
+    // cleanupFns도 정리하여 일관성 유지
     if (cleanupFns.current.length > 0) {
-      console.log('[useMqtt] Cleaning up existing subscriptions before re-subscribing')
+      console.log(`[useMqtt] Cleaning up ${cleanupFns.current.length} existing subscriptions before re-subscribing`)
       cleanupFns.current.forEach((fn) => fn())
       cleanupFns.current = []
     }
 
     isSubscribed.current = true
-    console.log('[useMqtt] Setting up Electron IPC subscriptions')
+    console.log('[useMqtt] Setting up Electron IPC subscriptions (preload handles dedup per channel)')
 
     // IPC 페이로드 타입
     interface IpcPayload {

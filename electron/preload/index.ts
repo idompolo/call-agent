@@ -10,14 +10,32 @@ import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 // Type-safe callback removal helper
 type CleanupFn = () => void;
 
+// 채널별 현재 핸들러를 추적하여 중복 등록 방지
+const activeHandlers = new Map<string, (event: IpcRendererEvent, data: unknown) => void>();
+
 function createEventHandler<T>(
   channel: string,
   callback: (data: T) => void
 ): CleanupFn {
+  // 기존 핸들러가 있으면 먼저 제거 (새로고침 시 중복 방지)
+  const existingHandler = activeHandlers.get(channel);
+  if (existingHandler) {
+    console.log(`[Preload] Removing existing handler for channel: ${channel}`);
+    ipcRenderer.removeListener(channel, existingHandler);
+    activeHandlers.delete(channel);
+  }
+
   const handler = (_event: IpcRendererEvent, data: T) => callback(data);
+  activeHandlers.set(channel, handler as (event: IpcRendererEvent, data: unknown) => void);
   ipcRenderer.on(channel, handler);
+
   return () => {
-    ipcRenderer.removeListener(channel, handler);
+    const currentHandler = activeHandlers.get(channel);
+    if (currentHandler === handler) {
+      ipcRenderer.removeListener(channel, handler);
+      activeHandlers.delete(channel);
+      console.log(`[Preload] Cleaned up handler for channel: ${channel}`);
+    }
   };
 }
 

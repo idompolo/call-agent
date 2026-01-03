@@ -22,25 +22,17 @@ export function ActionCard({ name, time, variant, className }: ActionCardProps) 
   return (
     <span
       className={cn(
-        "px-0.5 py-0 rounded text-[11px] font-medium flex-shrink-0 isolate inline-flex items-center gap-0.5 border",
-        // 더 진한 배경색과 테두리 추가
-        finalVariant === 'primary' && "bg-blue-200 text-blue-900 dark:bg-blue-800 dark:text-blue-100 border-blue-300 dark:border-blue-700",
-        finalVariant === 'muted' && "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600",
-        // 특수 액션용 커스텀 스타일
-        finalVariant === 'custom' && "bg-purple-200 text-purple-900 dark:bg-purple-800 dark:text-purple-100 border-purple-300 dark:border-purple-700",
+        "px-2 py-1 rounded-full text-[13px] font-medium flex-shrink-0 isolate inline-flex items-center justify-center gap-1 leading-none align-middle",
+        finalVariant === 'primary' && "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300",
+        finalVariant === 'muted' && "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
+        finalVariant === 'custom' && "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300",
         className
       )}
-      style={{
-        // isolation으로 부모 스타일 영향 차단
-        isolation: 'isolate'
-      }}
+      style={{ isolation: 'isolate' }}
     >
       <span className="font-medium">{name}</span>
       {time && (
-        <>
-          <span className="text-[9px]">|</span>
-          <span className="text-[10px]">{time}</span>
-        </>
+        <span className="text-[11px] opacity-50">{time}</span>
       )}
     </span>
   )

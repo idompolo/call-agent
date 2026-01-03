@@ -8,7 +8,7 @@ import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { orderService } from '@/services/order-service'
 import { useAuthStore } from '@/store/auth-store'
-import { RecentOrdersDialog, RecentOrder } from '@/components/recent-orders-dialog'
+import { RecentOrder } from '@/components/recent-orders-dialog'
 import { AsyncAutocomplete } from '@/components/ui/async-autocomplete'
 import { SyncAutocomplete } from '@/components/ui/sync-autocomplete'
 import { actionService } from '@/services/action-service'
@@ -16,12 +16,29 @@ import { Order } from '@/types/order'
 
 interface OrderInputPanelProps {
   className?: string
+  onShowRecentOrders?: (telephone: string) => void
+  onCloseRecentOrders?: () => void
+  showRecentOrders?: boolean
+}
+
+// Export handlers for external use (BottomPanel)
+export interface RecentOrderHandlers {
+  handleSelectRecentOrder: (order: RecentOrder) => void
+  handleSelectionChange: (order: RecentOrder) => void
 }
 
 // Export ref for external access
 export const telephoneFocusRef = { current: null as HTMLInputElement | null }
 
-export function OrderInputPanel({ className }: OrderInputPanelProps) {
+// Export handlers ref for BottomPanel access
+export const recentOrderHandlersRef: { current: RecentOrderHandlers | null } = { current: null }
+
+export function OrderInputPanel({
+  className,
+  onShowRecentOrders,
+  onCloseRecentOrders,
+  showRecentOrders: externalShowRecentOrders,
+}: OrderInputPanelProps) {
   const { selectedOrder, updateOrder, addOrder } = useOrderStore()
   const { user } = useAuthStore()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -39,8 +56,8 @@ export function OrderInputPanel({ className }: OrderInputPanelProps) {
   const [driverNo, setDriverNo] = useState('')
   const [showReserveMenu, setShowReserveMenu] = useState(false)
   const [reserveMenuPosition, setReserveMenuPosition] = useState({ x: 0, y: 0 })
-  const [showRecentOrders, setShowRecentOrders] = useState(false)
-  const [recentOrderTelephone, setRecentOrderTelephone] = useState('')
+  // 외부에서 RecentOrders 상태 관리 (props 사용)
+  const showRecentOrders = externalShowRecentOrders ?? false
   
   // 취소된 주문인지 확인
   const isCancelledOrder = !!selectedOrder?.cancelAt || selectedOrder?.status === '취소'
@@ -90,9 +107,8 @@ export function OrderInputPanel({ className }: OrderInputPanelProps) {
       
       // 전화번호가 있으면 최근 이력 자동 조회
       if (telephone) {
-        setRecentOrderTelephone(telephone)
-        setShowRecentOrders(true)
-        
+        onShowRecentOrders?.(telephone)
+
         // 최근 이력 팝업이 열린 후 포커스 설정 (동기적 처리)
         setTimeout(() => {
           handleFocusBasedOnOrderStatus(selectedOrder)
@@ -341,8 +357,7 @@ export function OrderInputPanel({ className }: OrderInputPanelProps) {
     setDriverNo('')
     
     // 최근 이력 팝업 닫기
-    setShowRecentOrders(false)
-    setRecentOrderTelephone('')
+    onCloseRecentOrders?.()
     
     // 주문 선택 해제
     if (selectedOrder) {
@@ -354,9 +369,8 @@ export function OrderInputPanel({ className }: OrderInputPanelProps) {
   
   const handleSearchHistory = async () => {
     if (telephone) {
-      setRecentOrderTelephone(telephone)
-      setShowRecentOrders(true)
-      
+      onShowRecentOrders?.(telephone)
+
       // 최근 이력 조회 후 가장 최근 주문으로 자동 채우기 (Flutter 로직과 동일)
       try {
         const recentOrders = await orderService.getRecentOrder(telephone)
@@ -433,6 +447,14 @@ export function OrderInputPanel({ className }: OrderInputPanelProps) {
       }
     }
   }
+
+  // Connect handlers to external ref for BottomPanel access
+  useEffect(() => {
+    recentOrderHandlersRef.current = {
+      handleSelectRecentOrder,
+      handleSelectionChange,
+    }
+  }, [showRecentOrders]) // showRecentOrders 의존성 추가 (handleSelectionChange에서 사용)
 
   // 포커스 시 텍스트 전체 선택
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
@@ -777,15 +799,6 @@ export function OrderInputPanel({ className }: OrderInputPanelProps) {
         </>
       )}
       
-      {/* 최근 이력 다이얼로그 */}
-      {showRecentOrders && (
-        <RecentOrdersDialog
-          telephone={recentOrderTelephone}
-          onSelectOrder={handleSelectRecentOrder}
-          onSelectionChange={handleSelectionChange}
-          onClose={() => setShowRecentOrders(false)}
-        />
-      )}
     </div>
   )
 }

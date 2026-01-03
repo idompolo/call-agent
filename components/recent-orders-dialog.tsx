@@ -179,10 +179,10 @@ export function RecentOrdersDialog({ telephone, onSelectOrder, onSelectionChange
   }
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-30 h-[220px]">
-      <div 
+    <div className="w-full h-full">
+      <div
         id="recent-orders-container"
-        className="bg-white dark:bg-gray-900 shadow-2xl w-full h-full flex flex-col overflow-hidden"
+        className="bg-white dark:bg-gray-900 w-full h-full flex flex-col overflow-hidden"
         onKeyDown={handleKeyDown}
         tabIndex={0}
         autoFocus

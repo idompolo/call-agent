@@ -7,14 +7,12 @@ import { ErrorBoundary } from '@/components/error-boundary'
 import { useAuthStore } from '@/store/auth-store'
 import { MonitoringPanelVirtualized as MonitoringPanel } from './components/monitoring-panel-virtualized'
 import { Header } from './components/header'
+import { BottomPanel } from '@/components/bottom-panel'
 
 // Lazy load 덜 사용되는 컴포넌트들
 const SideMenu = lazy(() => import('./components/side-menu').then(m => ({ default: m.SideMenu })))
 const OrderEditPanel = lazy(() => import('./components/order-edit-panel').then(m => ({ default: m.OrderEditPanel })))
 const OrderControlPanel = lazy(() => import('./components/order-control-panel').then(m => ({ default: m.OrderControlPanel })))
-const ChatPanel = lazy(() => import('@/components/chat-panel/ChatPanel').then(m => ({ default: m.ChatPanel })))
-const ChatPanelFlutterLayout = lazy(() => import('@/components/chat-panel/ChatPanelFlutterLayout').then(m => ({ default: m.ChatPanelFlutterLayout })))
-const MessageTablePanel = lazy(() => import('@/components/chat-panel/MessageTablePanel').then(m => ({ default: m.MessageTablePanel })))
 const SmsHistoryPanel = lazy(() => import('@/components/sms-panel').then(m => ({ default: m.SmsHistoryPanel })))
 import { initializationService } from '@/services/initialization-service'
 import { WindowsTitlebar } from '@/components/windows-titlebar'
@@ -25,6 +23,10 @@ export default function DashboardPage() {
   const [showSettings, setShowSettings] = useState(false)
   const [showEditPanel, setShowEditPanel] = useState(false)
   const [initError, setInitError] = useState<string | null>(null)
+
+  // BottomPanel 상태 (RecentOrdersDialog)
+  const [showRecentOrders, setShowRecentOrders] = useState(false)
+  const [recentOrdersTelephone, setRecentOrdersTelephone] = useState('')
 
   // 초기화 상태 추적용 ref
   const initRef = useRef({ aborted: false })
@@ -97,21 +99,24 @@ export default function DashboardPage() {
                   <div className="flex-1 min-h-0">
                     <MonitoringPanel />
                   </div>
-                  {/* Order Input Panel */}
+                  {/* Order Input Panel - above chat and recent orders dialog */}
                   <div className="flex-shrink-0">
-                    <OrderInputPanel />
+                    <OrderInputPanel
+                      showRecentOrders={showRecentOrders}
+                      onShowRecentOrders={(telephone) => {
+                        setRecentOrdersTelephone(telephone)
+                        setShowRecentOrders(true)
+                      }}
+                      onCloseRecentOrders={() => setShowRecentOrders(false)}
+                    />
                   </div>
-                  {/* Fixed bottom area for chat - 180px height */}
-                  <div className="flex-shrink-0 h-[180px] border-t border-gray-200 dark:border-gray-700 overflow-hidden">
-                    <Suspense
-                      fallback={
-                        <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-600 text-xs">
-                          채팅 로딩중...
-                        </div>
-                      }
-                    >
-                      <MessageTablePanel />
-                    </Suspense>
+                  {/* Bottom Panel - Chat + RecentOrdersDialog */}
+                  <div className="flex-shrink-0">
+                    <BottomPanel
+                      showRecentOrders={showRecentOrders}
+                      recentOrdersTelephone={recentOrdersTelephone}
+                      onCloseRecentOrders={() => setShowRecentOrders(false)}
+                    />
                   </div>
                 </div>
 

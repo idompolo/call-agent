@@ -59,24 +59,6 @@ export function LoadingSkeleton({ className, count = 10 }: LoadingSkeletonProps)
           </div>
         ))}
       </div>
-      
-      {/* Enhanced loading indicator */}
-      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2">
-        <div className="flex items-center gap-3">
-          <div className="flex gap-1">
-            {[0, 1, 2].map((index) => (
-              <div 
-                key={index}
-                className="w-2 h-2 rounded-full bg-gradient-to-br from-blue-400 to-purple-600 animate-loading-dot"
-                style={{ animationDelay: `${index * 150}ms` }}
-              />
-            ))}
-          </div>
-          <span className="text-xs font-medium text-gray-500 dark:text-gray-400 animate-pulse">
-            데이터 로딩 중
-          </span>
-        </div>
-      </div>
     </div>
   )
 }

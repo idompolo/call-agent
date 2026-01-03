@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, lazy, Suspense } from 'react'
+import { useEffect, useState, useRef, lazy, Suspense } from 'react'
 import { EditPanel } from '@/components/edit-panel/EditPanel'
 import { OrderInputPanel } from '@/components/order-input-panel/OrderInputPanel'
 import { ErrorBoundary } from '@/components/error-boundary'
@@ -19,39 +19,49 @@ import { initializationService } from '@/services/initialization-service'
 import { WindowsTitlebar } from '@/components/windows-titlebar'
 
 export default function DashboardPage() {
-  const { user, isAuthenticated, isInitialized, isInitializing } = useAuthStore()
+  const { user, isAuthenticated } = useAuthStore()
   const [showSideMenu, setShowSideMenu] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [showEditPanel, setShowEditPanel] = useState(false)
   const [initError, setInitError] = useState<string | null>(null)
 
-  // 페이지 마운트 시 초기화 상태 리셋 (새로고침 대응)
+  // 초기화 상태 추적용 ref
+  const initRef = useRef({ aborted: false })
+
+  // Handle initialization flow with abort pattern
   useEffect(() => {
-    const { isInitialized: currentlyInitialized, setInitialized, setInitializing } = useAuthStore.getState()
-    if (currentlyInitialized) {
-      console.log('[Dashboard] Resetting initialization state on mount (page refresh detected)')
+    const currentInit = { aborted: false }
+    initRef.current = currentInit
+
+    async function handleInitialization() {
+      if (!user?.id || !isAuthenticated) return
+
+      // 이전 초기화 상태 리셋
+      const { setInitialized, setInitializing } = useAuthStore.getState()
       setInitialized(false)
       setInitializing(false)
-    }
-  }, [])
 
-  // Handle initialization flow
-  useEffect(() => {
-    async function handleInitialization() {
-      if (user && user.id && isAuthenticated && !isInitialized && !isInitializing) {
-        console.log('[Dashboard] Starting initialization...')
-        const result = await initializationService.initialize()
+      console.log('[Dashboard] Starting initialization...')
+      const result = await initializationService.initialize()
 
-        if (!result.success) {
-          setInitError(result.error || 'Failed to initialize')
-        }
+      // 새로고침으로 언마운트되었으면 결과 무시
+      if (currentInit.aborted) {
+        console.log('[Dashboard] Initialization aborted (component unmounted)')
+        return
+      }
+
+      if (!result.success) {
+        setInitError(result.error || 'Failed to initialize')
       }
     }
 
-    if (user && isAuthenticated) {
-      handleInitialization()
+    handleInitialization()
+
+    // Cleanup: 언마운트 시 abort 플래그 설정
+    return () => {
+      currentInit.aborted = true
     }
-  }, [user, isAuthenticated, isInitialized, isInitializing])
+  }, [user, isAuthenticated])
 
   // 인증은 protected layout에서 처리되므로 여기서는 UI만 렌더링
   return (

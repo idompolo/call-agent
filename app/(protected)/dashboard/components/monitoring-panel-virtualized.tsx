@@ -46,7 +46,7 @@ export function MonitoringPanelVirtualized() {
   const { orders, selectedOrder, selectOrder, areaFilter, orderFilterType } = useOrderStore()
   const { isConnected } = useMqtt() // This hook handles MQTT subscriptions
   const { getGpsData, gpsMap } = useGpsStore()
-  const { isInitializing } = useAuthStore() // 초기화 상태 확인
+  const { isInitializing, isInitialized } = useAuthStore() // 초기화 상태 확인
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const shouldAutoScroll = useRef(true)
   const [scrollbarWidth, setScrollbarWidth] = useState(0)
@@ -260,13 +260,11 @@ export function MonitoringPanelVirtualized() {
       className="h-full overflow-hidden bg-white dark:bg-[#0d0d0f] flex flex-col border border-gray-200 dark:border-[#1c1c20]/50"
       style={{ '--compact-row-height': `${COMPACT_ROW_HEIGHT}px` } as React.CSSProperties}
     >
-      {/* 초기화 상태 표시 */}
-      {isInitializing && (
-        <div className="bg-yellow-100 dark:bg-yellow-900/20 px-3 py-2 flex items-center gap-2 border-b border-yellow-200 dark:border-yellow-800">
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600"></div>
-          <span className="text-sm text-yellow-700 dark:text-yellow-400">
-            초기 데이터 로딩 중...
-          </span>
+      {/* 상단 로딩 인디케이터 */}
+      {(isInitializing || !isInitialized) && (
+        <div className="flex-shrink-0 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-gray-900 px-3 py-1.5 text-xs font-medium flex items-center gap-2 animate-pulse">
+          <div className="w-3 h-3 border-2 border-gray-900 border-t-transparent rounded-full animate-spin" />
+          <span>데이터 로딩 중...</span>
         </div>
       )}
       {/* 주문 목록 - 가상 스크롤링을 위한 컨테이너 */}
@@ -396,12 +394,12 @@ export function MonitoringPanelVirtualized() {
               })}
               </div>
             </div>
-          ) : isInitializing ? (
+          ) : (isInitializing || !isInitialized) ? (
             <div className="p-8">
               <LoadingSkeleton count={15} />
             </div>
           ) : (
-            <EmptyState 
+            <EmptyState
               title={orders.length === 0 ? '주문이 없습니다' : '해당 지역에 주문이 없습니다'}
               description={orders.length === 0 ? '새로운 주문이 접수되면 여기에 표시됩니다' : '다른 지역을 선택해보세요'}
             />

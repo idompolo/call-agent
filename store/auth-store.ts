@@ -71,6 +71,12 @@ export const useAuthStore = create<AuthState>()(
           }
         },
       },
+      // 초기화 상태는 저장하지 않음 (새로고침마다 다시 초기화 필요)
+      partialize: (state) => ({
+        user: state.user,
+        token: state.token,
+        isAuthenticated: state.isAuthenticated,
+      } as AuthState),
     }
   )
 )

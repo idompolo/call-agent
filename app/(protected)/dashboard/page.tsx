@@ -15,6 +15,7 @@ const OrderControlPanel = lazy(() => import('./components/order-control-panel').
 const ChatPanel = lazy(() => import('@/components/chat-panel/ChatPanel').then(m => ({ default: m.ChatPanel })))
 const ChatPanelFlutterLayout = lazy(() => import('@/components/chat-panel/ChatPanelFlutterLayout').then(m => ({ default: m.ChatPanelFlutterLayout })))
 const MessageTablePanel = lazy(() => import('@/components/chat-panel/MessageTablePanel').then(m => ({ default: m.MessageTablePanel })))
+const SmsHistoryPanel = lazy(() => import('@/components/sms-panel').then(m => ({ default: m.SmsHistoryPanel })))
 import { initializationService } from '@/services/initialization-service'
 import { WindowsTitlebar } from '@/components/windows-titlebar'
 
@@ -65,18 +66,18 @@ export default function DashboardPage() {
 
   // 인증은 protected layout에서 처리되므로 여기서는 UI만 렌더링
   return (
-    <div className="flex flex-col h-screen bg-background">
+    <div className="flex flex-col h-screen w-screen overflow-hidden bg-background">
       {/* Windows 타이틀바 (Windows Electron에서만 표시) */}
       <WindowsTitlebar />
 
-      <div className="flex flex-1 min-h-0">
+      <div className="flex flex-1 min-h-0 overflow-hidden">
         {showSideMenu && (
           <Suspense fallback={<div className="w-64 bg-gray-100 dark:bg-gray-800 animate-pulse" />}>
             <SideMenu onClose={() => setShowSideMenu(false)} />
           </Suspense>
         )}
 
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           <Header
             onMenuClick={() => setShowSideMenu(true)}
             onSettingsClick={() => setShowSettings(true)}
@@ -89,24 +90,43 @@ export default function DashboardPage() {
                 console.error('Dashboard error:', error, errorInfo)
               }}
             >
-              <div className="flex-1 min-h-0">
-                <MonitoringPanel />
-              </div>
-              {/* Order Input Panel */}
-              <div className="flex-shrink-0">
-                <OrderInputPanel />
-              </div>
-              {/* Fixed bottom area for message table - 220px height for compact view */}
-              <div className="flex-shrink-0 h-[220px] border-t border-gray-200 dark:border-gray-700 overflow-hidden">
-                <Suspense
-                  fallback={
-                    <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-600 text-xs">
-                      메시지 테이블 로딩중...
-                    </div>
-                  }
-                >
-                  <MessageTablePanel />
-                </Suspense>
+              {/* Main content + Right SMS Panel */}
+              <div className="flex-1 flex min-h-0 overflow-hidden">
+                {/* Left: Main content area */}
+                <div className="flex-1 flex flex-col min-h-0 min-w-0 overflow-hidden">
+                  <div className="flex-1 min-h-0">
+                    <MonitoringPanel />
+                  </div>
+                  {/* Order Input Panel */}
+                  <div className="flex-shrink-0">
+                    <OrderInputPanel />
+                  </div>
+                  {/* Fixed bottom area for chat - 180px height */}
+                  <div className="flex-shrink-0 h-[180px] border-t border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <Suspense
+                      fallback={
+                        <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-600 text-xs">
+                          채팅 로딩중...
+                        </div>
+                      }
+                    >
+                      <MessageTablePanel />
+                    </Suspense>
+                  </div>
+                </div>
+
+                {/* Right: SMS History Panel (fixed 320px, always visible) */}
+                <div className="flex-shrink-0 w-[320px]">
+                  <Suspense
+                    fallback={
+                      <div className="h-full border-l bg-muted/10 flex items-center justify-center text-gray-400 dark:text-gray-600 text-xs">
+                        문자 패널 로딩중...
+                      </div>
+                    }
+                  >
+                    <SmsHistoryPanel />
+                  </Suspense>
+                </div>
               </div>
             </ErrorBoundary>
           </div>
